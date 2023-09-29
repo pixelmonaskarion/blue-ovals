@@ -15,7 +15,7 @@ module.exports = {
     compress: true,
     port: 3000,
     headers: {
-      'Content-Security-Policy': "default-src 'self' 'unsafe-inline' data:; connect-src 'self' ws://localhost:3000 https://chrissytopher.com:40441; script-src 'self' http://localhost:3000; style-src 'self' 'unsafe-inline';",
+      'Content-Security-Policy': "default-src 'self' 'unsafe-inline' data:; connect-src 'self' ws://localhost:3000 https://chrissytopher.com:40441; script-src 'self' 'unsafe-eval' http://localhost:3000; style-src 'self' 'unsafe-inline';",
     }
   },
 };
