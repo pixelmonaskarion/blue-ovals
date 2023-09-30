@@ -1,9 +1,12 @@
 import { useEffect, useState, useRef } from 'react';
 import Crypto from "./Crypto.js"
+import { styled, useTheme } from '@mui/material/styles';
 import React from 'react';
 import ProtoFile from "../assets/message.proto";
-import { TextField, IconButton} from '@mui/material';
+import { TextField, IconButton, Drawer, Button} from '@mui/material';
+import MenuIcon from '@mui/icons-material/Menu';
 import SendIcon from '@mui/icons-material/Send';
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 var protobuf = require("protobufjs");
 let protos = await load_protobufs();
 
@@ -21,11 +24,40 @@ function MessagesScreen() {
 
 	const [fieldValue, setFieldValue] = useState('');
 
+	const [recipientInputValue, setRecipientInputValue] = useState('');
+
+	const [recipient, setRecipient] = useState('christopher@huntwork.net');
+	
+	const [drawerOpen, setOpen] = useState(false);
+
     const messagesEndRef = useRef();
 
 	function handleTextFieldChange(e) {
 		setFieldValue(e.target.value);
 	}
+
+	function switchChatInputChange(e) {
+		setRecipientInputValue(e.target.value);
+	}
+
+	function switchRecipient() {
+		setRecipient(recipientInputValue);
+	}
+
+	const handleDrawerOpen = () => {
+		setOpen(true);
+	};
+
+	const handleDrawerClose = () => {
+		console.log("close Drawer");
+		setOpen(false);
+	};
+
+	const DrawerHeader = styled('div')(() => ({
+		display: 'flex',
+		alignItems: 'center',
+		justifyContent: 'flex-end',
+	}));
 
     window.electronAPI.getAllMessages().then(data => {
         setMessageList(afterGetmessages(data));
@@ -55,10 +87,36 @@ function MessagesScreen() {
     }
 	return (
 		<div>
+
+			<div style={{height: '9vh'}}>
+				<IconButton onClick={handleDrawerOpen} edge='start'>
+					<MenuIcon/>
+				</IconButton>
+			</div>
+			<Drawer  anchor='left' open={drawerOpen} 
+			variant='temporary'
+			sx={{width: '100px', 
+			flexShrink: 0,
+			'& .MuiDrawer-paper': {
+				width: '100px',
+				boxSizing: 'border-box',
+			  }}}
+			>
+				<div
+				style={{display: "flex", alignItems: "center", justifyContent: "flex-end"}}
+				>
+					<IconButton onClick={handleDrawerClose}>
+						<ChevronLeftIcon/>
+					</IconButton>
+				</div>
+				
+				<TextField onChange={switchChatInputChange} label="Recipient" variant='standard'/>
+				<Button onClick={switchRecipient}>Chat</Button>
+			</Drawer>
             {message_elements}
 			<div className='inputContainer'>
 				<TextField className='messageInput' label="Type message..." variant="standard" onChange={handleTextFieldChange}/>
-				<IconButton onClick={() => handleSend(fieldValue)}>
+				<IconButton onClick={() => handleSend(fieldValue, recipient)}>
 					<SendIcon/>
 				</IconButton>
 			</div>
@@ -66,8 +124,8 @@ function MessagesScreen() {
 	);
 }
 
-async function handleSend(message) {
-	send_message("christopher@huntwork.net", new_message(message));
+async function handleSend(message, recipient) {
+	send_message(recipient, new_message(message));
 }
 
 

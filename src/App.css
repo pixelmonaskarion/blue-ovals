@@ -2,7 +2,11 @@
   text-align: center;
   flex-direction: column;
   height: 100vh;
-  overflow-y: hidden;
+  overflow-y: clip;
+}
+
+body {
+  overflow: hidden;
 }
 
 .App-logo {
@@ -44,7 +48,7 @@
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  height: 89vh;
+  height: 76vh;
 }
 
 .inputContainer {
