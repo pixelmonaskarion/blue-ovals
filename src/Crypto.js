@@ -116,13 +116,23 @@ function base64ToArrayBuffer(base64) {
     return bytes.buffer;
 }
 
+function arrayBufferToBase64( buffer ) {
+    var binary = '';
+    var bytes = new Uint8Array( buffer );
+    var len = bytes.byteLength;
+    for (var i = 0; i < len; i++) {
+        binary += String.fromCharCode( bytes[ i ] );
+    }
+    return window.btoa( binary );
+}
+
 // Export RSA public key as a string
 const exportRSAPublicKeyAsString = async (publicKey) => {
 	const exportedKey = await window.crypto.subtle.exportKey(
 		"spki",
 		publicKey
 	);
-	const exportedKeyString = Buffer.from(exportedKey).toString('base64');
+	const exportedKeyString = arrayBufferToBase64(exportedKey);
 	return exportedKeyString;
 };
 
@@ -132,7 +142,7 @@ const exportRSAPrivateKeyAsString = async (privateKey) => {
 		"pkcs8",
 		privateKey
 	);
-	const exportedKeyString = Buffer.from(exportedKey).toString('base64');
+	const exportedKeyString = arrayBufferToBase64(exportedKey);
 	return exportedKeyString;
 };
 
@@ -173,8 +183,10 @@ const encryptDataWithRSAPublicKey = async (dataBytes, publicKey) => {
 	const blockSize = 190; // Maximum RSA block size is 190 bytes for OAEP padding
 	const encryptedBlocks = [];
 	let offset = 0;
+	console.log(dataBytes);
 	while (offset < dataBytes.length) {
 		const block = dataBytes.slice(offset, offset + blockSize);
+		console.log(block);
 		const encryptedBlock = await window.crypto.subtle.encrypt(
 			{
 				name: "RSA-OAEP",
@@ -182,6 +194,7 @@ const encryptDataWithRSAPublicKey = async (dataBytes, publicKey) => {
 			publicKey,
 			block
 		);
+		console.log(encryptedBlock);
 		encryptedBlocks.push(encryptedBlock);
 		offset += blockSize;
 	}
@@ -193,7 +206,7 @@ const encryptDataWithRSAPublicKey = async (dataBytes, publicKey) => {
 		encryptedData.set(new Uint8Array(block), offsetBytes);
 		offsetBytes += block.byteLength;
 	});
-	const encryptedDataString = Buffer.from(encryptedData).toString('base64');
+	const encryptedDataString = arrayBufferToBase64(encryptedData);
 	return encryptedDataString;
 };
 

@@ -16,7 +16,7 @@ function SignInScreen(props) {
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify(basic_auth_json)
+            body: JSON.stringify(basic_auth_json),
         })).json();
         let keys = await Crypto.generateKeyPair();
         let ids_res = await (await fetch("https://chrissytopher.com:40441/register-ids/", {

@@ -86,23 +86,28 @@ async function send_message(recipient, message) {
 	let auth = await window.electronAPI.getAuth();
 	let ids = await (await fetch("https://chrissytopher.com:40441/query-ids/" + recipient)).json();
 	ids.ids.forEach(async device => {
-		let Message = protos.lookupType("Message");
-		let encrypted_message = await Crypto.encryptBytes(device.public_key, Message.encode(message).finish());
-		// eslint-disable-next-line no-unused-vars
-		let res = await fetch("https://chrissytopher.com:40441/post-message/", {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-			},
-			body: JSON.stringify({
-				account: {
-					email: auth.email,
-					password: auth.password,
+		try {
+			let Message = protos.lookupType("Message");
+			let encrypted_message = await Crypto.encryptBytes(device.public_key, Message.encode(message).finish());
+			// eslint-disable-next-line no-unused-vars
+			let res = await fetch("https://chrissytopher.com:40441/post-message/", {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
 				},
-				recipient: device.uuid,
-				data: encrypted_message,
-			})
-		});
+				body: JSON.stringify({
+					account: {
+						email: auth.email,
+						password: auth.password,
+					},
+					recipient: device.uuid,
+					data: encrypted_message,
+				})
+			});
+			console.log("successfully sent message to device", device);
+		} catch {
+			console.log("failed to send message to device", device);
+		}
 	});
 	if (recipient !== auth.email) {
 		let your_ids = await (await fetch("https://chrissytopher.com:40441/query-ids/" + auth.email)).json();
