@@ -122,7 +122,7 @@ const exportRSAPublicKeyAsString = async (publicKey) => {
 		"spki",
 		publicKey
 	);
-	const exportedKeyString = Buffer.from(exportedKey).toString('base64');
+	const exportedKeyString = btoa(exportedKey);
 	return exportedKeyString;
 };
 
@@ -132,7 +132,7 @@ const exportRSAPrivateKeyAsString = async (privateKey) => {
 		"pkcs8",
 		privateKey
 	);
-	const exportedKeyString = Buffer.from(exportedKey).toString('base64');
+	const exportedKeyString = btoa(exportedKey);
 	return exportedKeyString;
 };
 
@@ -193,7 +193,7 @@ const encryptDataWithRSAPublicKey = async (dataBytes, publicKey) => {
 		encryptedData.set(new Uint8Array(block), offsetBytes);
 		offsetBytes += block.byteLength;
 	});
-	const encryptedDataString = Buffer.from(encryptedData).toString('base64');
+	const encryptedDataString = btoa(encryptedData);
 	return encryptedDataString;
 };
 
