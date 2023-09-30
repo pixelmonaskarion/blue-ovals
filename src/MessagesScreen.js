@@ -177,7 +177,6 @@ const Message = (props) => {
 	{
 		var millisDiff = new Date(messageList[id + 1].sent_timestamp) - timestamp;
 		var minutesDiff = Math.floor((millisDiff/1000)/60);
-		console.log(minutesDiff);
 		if (minutesDiff > time_difference_thresh)
 		{
 			showTimestamp = true;
