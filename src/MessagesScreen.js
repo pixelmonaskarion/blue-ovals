@@ -48,9 +48,8 @@ function MessagesScreen() {
 			currentNewMessageCallback(message);
 		});
         window.electronAPI.startWebsocket();
-		var email;
+		let email;
         window.electronAPI.getAuth().then(data => {
-            console.log(data);
 			email = data.email;
             setAuth(data);
         });
@@ -117,7 +116,7 @@ function MessagesScreen() {
         message_elements = <div className='messagesList'>
             {/* Render chat messages here */}
             {messageList.map((message2, i) => (
-                (((message2.sender == auth.email && message2.recipients[0] == recipient) || (message2.sender == recipient && message2.recipients[0] == auth.email)) ? <Message message={message2.text} self={(message2.sender === auth.email)} timestamp={message2.sent_timestamp} messageList={messageList} id={i}/> : <></>)
+                (((message2.sender == auth.email && message2.recipients[0] == recipient) || (message2.sender == recipient && message2.recipients[0] == auth.email)) ? <Message message={message2.text} self={(message2.sender === auth.email)} timestamp={message2.sent_timestamp} messageList={messageList} id={i}/> : undefined)
             ))}
             {/* Add more message items as needed */}
             <div ref={messagesEndRef} />
@@ -219,23 +218,28 @@ async function send_message(recipient, message_info) {
 	if (recipient !== auth.email) {
 		let your_ids = await (await fetch("https://chrissytopher.com:40441/query-ids/" + auth.email)).json();
 		your_ids.ids.forEach(async device => {
-			let Message = protos.lookupType("Message");
-			let encrypted_message = await Crypto.encryptBytes(device.public_key, Message.encode(message).finish());
-			// eslint-disable-next-line no-unused-vars
-			let res = await fetch("https://chrissytopher.com:40441/post-message/", {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-				},
-				body: JSON.stringify({
-					account: {
-						email: auth.email,
-						password: auth.password,
+			try {
+				let Message = protos.lookupType("Message");
+				let encrypted_message = await Crypto.encryptBytes(device.public_key, Message.encode(message).finish());
+				// eslint-disable-next-line no-unused-vars
+				let res = await fetch("https://chrissytopher.com:40441/post-message/", {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
 					},
-					recipient: device.uuid,
-					data: encrypted_message,
-				})
-			});
+					body: JSON.stringify({
+						account: {
+							email: auth.email,
+							password: auth.password,
+						},
+						recipient: device.uuid,
+						data: encrypted_message,
+					})
+				});
+				console.log("successfully sent message to device", device);
+			} catch {
+				console.log("failed to send message to device", device);
+			}
 		});
 	}
 }
@@ -245,39 +249,17 @@ async function send_message(recipient, message_info) {
 function getUniqueChats(data, email)
 {
 	var chats = [];
-	for (var i = 0; i < data.length; i++)
-	{
-
-		//Check if the chat is with yourself
-		if (data[i].recipients[0] == data[i].sender)
-		{
-			if (!chats.includes(data[i].sender))
-			{
-				chats.push(data[i].sender);
-			}
-
-			continue;
-		}
-
-		var inChat = false;
-		for (var j = 0; j < chats.length; j++)
-		{
-			if (data[i].recipients[0] == chats[j] || data[i].sender == chats[j])
-			{
-				inChat = true;
+	data.forEach((message) => {
+		if (message.recipients.length == 1) {
+			if (message.recipients[0] != email) {
+				if (!chats.includes(message.recipients[0])) {
+					chats.push(message.recipients[0]);
+				}
+			} else if (!chats.includes(message.sender)) {
+				chats.push(message.sender);
 			}
 		}
-		
-
-		if (!inChat)
-		{
-			chats.push(
-				data[i].recipients[0] == email ? data[i].sender : data[i].recipients[0]
-			)
-		}
-	}
-
-	console.log(chats);
+	});
 	return chats;
 }
 
