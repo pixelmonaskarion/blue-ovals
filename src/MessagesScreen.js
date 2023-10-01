@@ -101,12 +101,14 @@ function MessagesScreen() {
 
     }, [messageList.length, auth]);
 
+	console.log(messageList);
+
 	let message_elements;
     if (auth !== undefined) {
         message_elements = <div className='messagesList'>
             {/* Render chat messages here */}
             {messageList.map((message2, i) => (
-                <Message message={message2.text} self={(message2.sender === auth.email)} timestamp={message2.sent_timestamp} messageList={messageList} id={i}/>
+                (((message2.sender == auth.email && message2.recipients[0] == recipient) || (message2.sender == recipient && message2.recipients[0] == auth.email)) ? <Message message={message2.text} self={(message2.sender === auth.email)} timestamp={message2.sent_timestamp} messageList={messageList} id={i}/> : <></>)
             ))}
             {/* Add more message items as needed */}
             <div ref={messagesEndRef} />
