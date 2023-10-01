@@ -123,21 +123,8 @@ function MessagesScreen() {
         </div>
     }
 	return (
-		<div>
-
-			<div style={{height: '9vh'}}>
-				<IconButton onClick={handleDrawerOpen} edge='start' style={{ display: (drawerOpen ? 'none' : 'block'), marginLeft: '10px'}}>
-					<MenuIcon/>
-				</IconButton>
-			</div>
-			<Drawer  anchor='left' open={drawerOpen} 
-			variant='temporary'
-			sx={{width: '100px', 
-			flexShrink: 0,
-			'& .MuiDrawer-paper': {
-				width: '250px',
-				boxSizing: 'border-box',
-			  }}}>
+		<div className='flex-container'>
+			<div className='drawer'>
 				<div style={{display: "flex", alignItems: "center", justifyContent: "flex-end"}}>
 					<IconButton onClick={handleDrawerClose}>
 						<ChevronLeftIcon/>
@@ -163,9 +150,11 @@ function MessagesScreen() {
 						</ListItem>
 					))}
 				</List>
-			</Drawer>
-            {message_elements}
-			<MessagesInput onInputChange={handleTextFieldChange} inputValue={fieldValue} onSendClicked={() => {handleSend(fieldValue, recipient); setFieldValue("");}}/>
+			</div>
+			<div className='MessagesContainer'>
+				{message_elements}
+				<MessagesInput onInputChange={handleTextFieldChange} inputValue={fieldValue} onSendClicked={() => {handleSend(fieldValue, recipient); setFieldValue("");}}/>
+			</div>
 		</div>
 	);
 }

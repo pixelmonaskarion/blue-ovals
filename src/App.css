@@ -7,6 +7,7 @@
 
 body {
   overflow: hidden;
+  margin: 0;
 }
 
 .App-logo {
@@ -48,15 +49,17 @@ body {
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  height: 76vh;
+  height: -webkit-fill-available;
 }
 
 .inputContainer {
   display: flex;
   align-items: center;
   border-top: 1px solid black;
-  height: 10vh;
   padding: 0.5vh;
+  bottom: 0;
+  position: fixed;
+  width: -webkit-fill-available;
 }
 
 .messageInput {
@@ -113,3 +116,16 @@ body {
   margin-right: 5px;
 }
 
+.drawer {
+  flex: 1;
+  width: 10vw;
+}
+
+.flex-container {
+  display: flex;
+  height: 100%;
+}
+
+.MessagesContainer {
+  flex: 8;
+}
