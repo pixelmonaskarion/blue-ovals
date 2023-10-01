@@ -154,7 +154,7 @@ Electron.ipcMain.handle('get-all-messages', async (event) => {
 			if (err) {
 				reject(err);
 			}
-			messages.push(row);
+			messages.push(deserialize_recipients(row));
 		}, () => {
 			resolve(messages);
 		});
@@ -186,7 +186,6 @@ Electron.ipcMain.handle('start-websocket', async (event) => {
 		console.log("ws started");
 		ws.send(auth.email);
 		ws.send(auth.password);
-		//I haven't quite figured out how to get this to work but I'll figure it out soon
 		mainWindow.webContents.send('websocket-open');
 	});
 
@@ -195,8 +194,6 @@ Electron.ipcMain.handle('start-websocket', async (event) => {
 		let message_json = JSON.parse(data.toString());
 		let Message = protos.lookupType("Message");
 		let message = Message.decode(await Crypto.decryptAsArray(auth.private_key, message_json.data));
-		save_message(message, message_json.sender);
-		//for now there is no way to get a callback on a new message, poll the database on an interval
-		mainWindow.webContents.send('websocket-message', message);
+		mainWindow.webContents.send('websocket-message', save_message(message, message_json.sender));
 	});
 });
