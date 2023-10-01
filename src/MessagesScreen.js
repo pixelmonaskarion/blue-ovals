@@ -3,7 +3,8 @@ import Crypto from "./Crypto.js"
 import { styled, useTheme } from '@mui/material/styles';
 import React from 'react';
 import ProtoFile from "../assets/message.proto";
-import { TextField, IconButton, Drawer, Button} from '@mui/material';
+import { TextField, IconButton, Drawer, Button, Divider} from '@mui/material';
+import { List, ListItem, ListItemIcon, ListItemText, ListItemButton } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import MessagesInput from './MessagesInput.js';
@@ -25,6 +26,8 @@ function MessagesScreen() {
 
 	const [messageList, setMessageList] = useState([]);
 
+	const [chats, setChats] = useState([]);
+
 	const forceUpdate = useForceUpdate();
 
 	currentNewMessageCallback = (message) => {
@@ -35,6 +38,7 @@ function MessagesScreen() {
 		forceUpdate();
 	};
 
+
     useEffect(() => {
 		window.electronAPI.onWebsocketOpened(() => {
 			console.log("websocket opened");
@@ -43,13 +47,18 @@ function MessagesScreen() {
 			currentNewMessageCallback(message);
 		});
         window.electronAPI.startWebsocket();
+		var email;
         window.electronAPI.getAuth().then(data => {
             console.log(data);
+			email = data.email;
             setAuth(data);
         });
 		window.electronAPI.getAllMessages().then(data => {
+			//get all of the unique chats you are in
+			setChats(getUniqueChats(data, email));
 			setMessageList(afterGetmessages(data));
 		});
+		
     }, []);
 
 
@@ -101,7 +110,6 @@ function MessagesScreen() {
 
     }, [messageList.length, auth]);
 
-	console.log(messageList);
 
 	let message_elements;
     if (auth !== undefined) {
@@ -118,7 +126,7 @@ function MessagesScreen() {
 		<div>
 
 			<div style={{height: '9vh'}}>
-				<IconButton onClick={handleDrawerOpen} edge='start'>
+				<IconButton onClick={handleDrawerOpen} edge='start' style={{ display: (drawerOpen ? 'none' : 'block'), marginLeft: '10px'}}>
 					<MenuIcon/>
 				</IconButton>
 			</div>
@@ -127,20 +135,34 @@ function MessagesScreen() {
 			sx={{width: '100px', 
 			flexShrink: 0,
 			'& .MuiDrawer-paper': {
-				width: '100px',
+				width: '250px',
 				boxSizing: 'border-box',
-			  }}}
-			>
-				<div
-				style={{display: "flex", alignItems: "center", justifyContent: "flex-end"}}
-				>
+			  }}}>
+				<div style={{display: "flex", alignItems: "center", justifyContent: "flex-end"}}>
 					<IconButton onClick={handleDrawerClose}>
 						<ChevronLeftIcon/>
 					</IconButton>
 				</div>
 				
-				<TextField onChange={switchChatInputChange} label="Recipient" variant='standard'/>
-				<Button onClick={switchRecipient}>Chat</Button>
+				<div style={{padding: '10px', textAlign: 'center'}}>
+					<TextField onChange={switchChatInputChange} label="Recipient" variant='standard'/>
+					<Button onClick={switchRecipient}>Chat</Button>
+				</div>
+				
+
+				<Divider/>
+
+				<List>
+					{chats.map((chat, i) => (
+						<ListItem>
+							<ListItemButton onClick={() => setRecipient(chat)}>
+								<ListItemText>
+									{chat}
+								</ListItemText>
+							</ListItemButton>
+						</ListItem>
+					))}
+				</List>
 			</Drawer>
             {message_elements}
 			<MessagesInput onInputChange={handleTextFieldChange} inputValue={fieldValue} onSendClicked={() => {handleSend(fieldValue, recipient); setFieldValue("");}}/>
@@ -217,6 +239,48 @@ async function send_message(recipient, message_info) {
 	}
 }
 
+
+
+function getUniqueChats(data, email)
+{
+	var chats = [];
+	for (var i = 0; i < data.length; i++)
+	{
+
+		//Check if the chat is with yourself
+		if (data[i].recipients[0] == data[i].sender)
+		{
+			if (!chats.includes(data[i].sender))
+			{
+				chats.push(data[i].sender);
+			}
+
+			continue;
+		}
+
+		var inChat = false;
+		for (var j = 0; j < chats.length; j++)
+		{
+			if (data[i].recipients[0] == chats[j] || data[i].sender == chats[j])
+			{
+				inChat = true;
+			}
+		}
+		
+
+		if (!inChat)
+		{
+			chats.push(
+				data[i].recipients[0] == email ? data[i].sender : data[i].recipients[0]
+			)
+		}
+	}
+
+	console.log(chats);
+	return chats;
+}
+
+
 function add_chat_info(message, recipient) {
 	let Message = protos.lookupType("Message");
 	return Message.create({...Message.toObject(message), recipients: [recipient]});
@@ -275,7 +339,7 @@ const Message = (props) => {
 
 	return (
 		<div className={self ? 'selfMessageWrapper' : 'otherMessageWrapper'}>
-			<div className={self ? 'selfInnerMessage' : 'selfInnerMessage'}>
+			<div className={self ? 'selfInnerMessage' : 'otherInnerMessage'}>
 				<p>{message}</p>
 			</div>
 			
