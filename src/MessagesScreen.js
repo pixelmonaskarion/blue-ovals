@@ -5,8 +5,8 @@ import React from 'react';
 import ProtoFile from "../assets/message.proto";
 import { TextField, IconButton, Drawer, Button} from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
-import SendIcon from '@mui/icons-material/Send';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import MessagesInput from './MessagesInput.js';
 var protobuf = require("protobufjs");
 let protos = await load_protobufs();
 
@@ -141,12 +141,7 @@ function MessagesScreen() {
 				<Button onClick={switchRecipient}>Chat</Button>
 			</Drawer>
             {message_elements}
-			<div className='inputContainer'>
-				<TextField className='messageInput' label="Type message..." variant="standard" onChange={handleTextFieldChange} value={fieldValue}/>
-				<IconButton onClick={() => {handleSend(fieldValue, recipient); setFieldValue("");}}>
-					<SendIcon/>
-				</IconButton>
-			</div>
+			<MessagesInput onInputChange={handleTextFieldChange} inputValue={fieldValue} onSendClicked={() => {handleSend(fieldValue, recipient); setFieldValue("");}}/>
 		</div>
 	);
 }
@@ -167,7 +162,9 @@ async function load_protobufs() {
 	})
 }
 
-async function send_message(recipient, message) {
+async function send_message(recipient, message_info) {
+	let message = add_chat_info(message_info, recipient);
+	console.log(message);
 	let auth = await window.electronAPI.getAuth();
 	let ids = await (await fetch("https://chrissytopher.com:40441/query-ids/" + recipient)).json();
 	ids.ids.forEach(async device => {
@@ -216,6 +213,11 @@ async function send_message(recipient, message) {
 			});
 		});
 	}
+}
+
+function add_chat_info(message, recipient) {
+	let Message = protos.lookupType("Message");
+	return Message.create({...Message.toObject(message), recipients: [recipient]});
 }
 
 function new_message(text, replyuuid) {

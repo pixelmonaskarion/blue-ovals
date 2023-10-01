@@ -80,7 +80,7 @@ async function createWindow() {
 	protos = await load_protobufs();
 	messages_db = new sqlite3.Database(app.getPath("userData") + "/messages.db");
 	//unsure of what will happen if an older version has different/less fields, if this fails after changes delete the database file
-	messages_db.run("CREATE TABLE IF NOT EXISTS messages (uuid TEXT, text TEXT, sender TEXT, sent_timestamp BIGINT, reply BIT, aboutuuid TEXT, status TEXT, reaction TEXT)");
+	messages_db.run("CREATE TABLE IF NOT EXISTS messages (uuid TEXT, text TEXT, sender TEXT, sent_timestamp BIGINT, reply BIT, aboutuuid TEXT, status TEXT, reaction TEXT, recipients TEXT, chatid TEXT)");
 	
 	// and load the index.html of the app.
 	mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
@@ -126,11 +126,24 @@ Electron.ipcMain.handle('save-message', async (event, message, sender) => {
 	return save_message(message, sender);
 });
 
+function serialize_recipients(message) {
+	let recipients = "";
+	console.log(message);
+	message.recipients.forEach((recipient) => {
+		recipients += recipient + ";";
+	});
+	return recipients.slice(0, -1);
+}
+
+function deserialize_recipients(row) {
+	return {...row, recipients: row.recipients.split(";")};
+}
+
 function save_message(message, sender) {
 	let message_object = protos.lookupType("Message").toObject(message);
-	let sql_command = `INSERT INTO messages VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
+	let sql_command = `INSERT INTO messages VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 	const stmt = messages_db.prepare(sql_command);
-	stmt.run(message_object.uuid, message_object.text, sender, message_object.timestamp, message_object.reply, message_object.aboutuuid, message_object.status, message_object.reaction);
+	stmt.run(message_object.uuid, message_object.text, sender, message_object.timestamp, message_object.reply, message_object.aboutuuid, message_object.status, message_object.reaction, serialize_recipients(message_object), message_object.chatid);
 	return {...message_object, sender: sender};
 }
 
@@ -156,7 +169,7 @@ Electron.ipcMain.handle('get-some-messages', async (event, sql) => {
 			if (err) {
 				reject(err);
 			}
-			messages.push(row);
+			messages.push(deserialize_recipients(row));
 		}, () => {
 			resolve(messages);
 		});

@@ -9,6 +9,8 @@ message Message {
     //for these two just don't set them if the message isn't a receipt/reaction
     Status status = 6; //for read receipts
     string reaction = 7; //reaction, can be whatever makes the most sense for the ui
+    repeated string recipients = 8;
+    string chatid = 9; //undefined if this is a dm
 }
 
 enum Status {
