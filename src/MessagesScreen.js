@@ -10,17 +10,48 @@ import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 var protobuf = require("protobufjs");
 let protos = await load_protobufs();
 
+let currentNewMessageCallback = undefined;
+
+//create your forceUpdate hook
+function useForceUpdate(){
+    const [value, setValue] = useState(0); // integer state
+    return () => setValue(value => value + 1); // update state to force render
+    // A function that increment 👆🏻 the previous state like here 
+    // is better than directly setting `setValue(value + 1)`
+}
+
 function MessagesScreen() {
     const [auth, setAuth] = useState(undefined);
+
+	const [messageList, setMessageList] = useState([]);
+
+	const forceUpdate = useForceUpdate();
+
+	currentNewMessageCallback = (message) => {
+		console.log("websocket message");
+		let newMessagesList = messageList;
+		newMessagesList.push(message);
+		setMessageList(newMessagesList);
+		forceUpdate();
+	};
+
     useEffect(() => {
+		window.electronAPI.onWebsocketOpened(() => {
+			console.log("websocket opened");
+		});
+		window.electronAPI.onReceivedMessage((message) => {
+			currentNewMessageCallback(message);
+		});
         window.electronAPI.startWebsocket();
         window.electronAPI.getAuth().then(data => {
             console.log(data);
             setAuth(data);
         });
+		window.electronAPI.getAllMessages().then(data => {
+			setMessageList(afterGetmessages(data));
+		});
     }, []);
 
-	const [messageList, setMessageList] = useState([]);
 
 	const [fieldValue, setFieldValue] = useState('');
 
@@ -115,8 +146,8 @@ function MessagesScreen() {
 			</Drawer>
             {message_elements}
 			<div className='inputContainer'>
-				<TextField className='messageInput' label="Type message..." variant="standard" onChange={handleTextFieldChange}/>
-				<IconButton onClick={() => handleSend(fieldValue, recipient)}>
+				<TextField className='messageInput' label="Type message..." variant="standard" onChange={handleTextFieldChange} value={fieldValue}/>
+				<IconButton onClick={() => {handleSend(fieldValue, recipient); setFieldValue("");}}>
 					<SendIcon/>
 				</IconButton>
 			</div>

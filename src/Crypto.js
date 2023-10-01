@@ -183,10 +183,8 @@ const encryptDataWithRSAPublicKey = async (dataBytes, publicKey) => {
 	const blockSize = 190; // Maximum RSA block size is 190 bytes for OAEP padding
 	const encryptedBlocks = [];
 	let offset = 0;
-	console.log(dataBytes);
 	while (offset < dataBytes.length) {
 		const block = dataBytes.slice(offset, offset + blockSize);
-		console.log(block);
 		const encryptedBlock = await window.crypto.subtle.encrypt(
 			{
 				name: "RSA-OAEP",
@@ -194,7 +192,6 @@ const encryptDataWithRSAPublicKey = async (dataBytes, publicKey) => {
 			publicKey,
 			block
 		);
-		console.log(encryptedBlock);
 		encryptedBlocks.push(encryptedBlock);
 		offset += blockSize;
 	}
