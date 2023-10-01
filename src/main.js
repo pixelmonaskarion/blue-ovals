@@ -127,26 +127,10 @@ Electron.ipcMain.handle('save-message', async (event, message, sender) => {
 });
 
 function save_message(message, sender) {
-	let extra_columns = ", ";
-	let extra_values = ", ";
 	let message_object = protos.lookupType("Message").toObject(message);
-	if (message_object.aboutuuid != undefined) {
-		extra_columns += "aboutuuid, ";
-		extra_values += `'${message_object.aboutuuid}', `;
-	}
-	if (message_object.status != undefined) {
-		extra_columns += "status, ";
-		extra_values += `'${message_object.status}', `;
-	}
-	if (message_object.reaction != undefined) {
-		extra_columns += "reaction, ";
-		extra_values += `'${message_object.reaction}', `;
-	}
-
-	extra_columns = extra_columns.substring(0,-2);
-	extra_values = extra_values.substring(0,-2);
-	let sql_command = `INSERT INTO messages (uuid, text, sender, sent_timestamp, reply${extra_columns}) VALUES ('${message_object.uuid}', '${message_object.text}', '${sender}', ${message_object.timestamp}, ${message_object.reply}${extra_values})`;
-	messages_db.run(sql_command);
+	let sql_command = `INSERT INTO messages VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
+	const stmt = messages_db.prepare(sql_command);
+	stmt.run(message_object.uuid, message_object.text, sender, message_object.timestamp, message_object.reply, message_object.aboutuuid, message_object.status, message_object.reaction);
 	return {...message_object, sender: sender};
 }
 

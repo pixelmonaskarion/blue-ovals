@@ -7,6 +7,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   startWebsocket: () => ipcRenderer.invoke('start-websocket'),
   getAuth: () => ipcRenderer.invoke('get-auth'),
   getAllMessages: () => ipcRenderer.invoke('get-all-messages'),
+  getSomeMessages: (sql) => ipcRenderer.invoke('get-some-messages', sql),
   onReceivedMessage: (callback) => ipcRenderer.on('websocket-message', (_event, value) => {
     callback(value);
   }),
