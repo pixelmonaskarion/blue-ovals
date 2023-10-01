@@ -34,6 +34,8 @@ async function load_protobufs() {
 
 let tray = null
 
+let quitFromTray = false;
+
 async function createWindow() {
 	session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
 		callback({
@@ -62,13 +64,24 @@ async function createWindow() {
 	const contextMenu = Menu.buildFromTemplate([
 		{ label: 'Blue Ovals', type: 'normal', enabled: false },
 		{ label: 'Show/Hide', type: 'checkbox', click: () => {
-			if (mainWindow.isVisible()) {
-				mainWindow.hide();
-			} else {
-				mainWindow.show();
+			try {
+				if (mainWindow.isVisible()) {
+					mainWindow.hide();
+				} else {
+					mainWindow.show();
+				}
+			} catch {
+				mainWindow = new BrowserWindow({
+					width: 800,
+					height: 600,
+					webPreferences: {
+						preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
+					},
+				});
+				mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
 			}
 		}},
-		{ label: 'Quit', type: 'checkbox', role: "quit" },
+		{ label: 'Quit', type: 'checkbox', click: () => {quitFromTray = true; app.quit()} },
 	])
 	tray.setContextMenu(contextMenu)
 
@@ -84,9 +97,6 @@ async function createWindow() {
 	
 	// and load the index.html of the app.
 	mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
-
-	// Open the DevTools.
-	mainWindow.webContents.openDevTools();
 };
 
 // This method will be called when Electron has finished
@@ -97,9 +107,15 @@ app.on('ready', createWindow);
 // Quit when all windows are closed, except on macOS. There, it's common
 // for applications and their menu bar to stay active until the user quits
 // explicitly with Cmd + Q.
-app.on('window-all-closed', () => {
-	if (process.platform !== 'darwin') {
-		app.quit();
+// app.on('window-all-closed', () => {
+// 	if (process.platform !== 'darwin') {
+// 		app.quit();
+// 	}
+// });
+
+app.on("will-quit", (event) => {
+	if (!quitFromTray) {
+		event.preventDefault();
 	}
 });
 
@@ -128,7 +144,6 @@ Electron.ipcMain.handle('save-message', async (event, message, sender) => {
 
 function serialize_recipients(message) {
 	let recipients = "";
-	console.log(message);
 	message.recipients.forEach((recipient) => {
 		recipients += recipient + ";";
 	});
