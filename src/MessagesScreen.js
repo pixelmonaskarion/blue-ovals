@@ -90,10 +90,6 @@ function MessagesScreen() {
 		justifyContent: 'flex-end',
 	}));
 
-    window.electronAPI.getAllMessages().then(data => {
-        setMessageList(afterGetmessages(data));
-    });
-
     useEffect(() => {
         if (messageList.length)
         {
