@@ -35,6 +35,7 @@ function MessagesScreen() {
 		let newMessagesList = messageList;
 		newMessagesList.push(message);
 		setMessageList(newMessagesList);
+		setChats(getUniqueChats(newMessagesList, auth.email));
 		forceUpdate();
 	};
 

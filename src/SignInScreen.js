@@ -2,6 +2,7 @@ import { useState } from 'react';
 import React from 'react';
 import Crypto from "./Crypto.js"
 import { TextField } from '@mui/material';
+import isEmail from 'validator/lib/isEmail';
 
 function SignInScreen(props) {
 	async function sign_in(email, password) {
@@ -44,8 +45,10 @@ function SignInScreen(props) {
         }
 	};
     const [email, setEmail] = useState("");
+    const [emailValid, setEmailValid] = useState(false);
     const [password, setPassword] = useState("");
 	function handleEmailChange(e) {
+        setEmailValid(isEmail(e.target.value));
 		setEmail(e.target.value);
 	}
     function handlePasswordChange(e) {
@@ -55,11 +58,11 @@ function SignInScreen(props) {
 	return (
 		<div className="SignInScreen">
             <h1>Login or Create Account</h1>
-            <TextField className='emailInput' label="Email" variant="standard" onChange={handleEmailChange}/>
+            <TextField className='emailInput' label="Email" placeholder='example@email.com' variant="standard" onChange={handleEmailChange}/>
             <br/>
-            <TextField className='passwordInput' label="Password" variant="standard" onChange={handlePasswordChange}/>
+            <TextField className='passwordInput' label="Password" type='password' variant="standard" onChange={handlePasswordChange}/>
             <br/>
-            <button onClick={() => {sign_in(email, password)}}>
+            <button onClick={() => {if (emailValid){sign_in(email, password)}}}>
                 <span>Login</span>
             </button>
         </div>
