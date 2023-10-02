@@ -126,9 +126,7 @@ function MessagesScreen() {
 		<div className='flex-container'>
 			<div className='drawer'>
 				<div style={{display: "flex", alignItems: "center", justifyContent: "flex-end"}}>
-					<IconButton onClick={handleDrawerClose}>
-						<ChevronLeftIcon/>
-					</IconButton>
+					
 				</div>
 				
 				<div style={{padding: '10px', textAlign: 'center'}}>
