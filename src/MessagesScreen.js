@@ -9,6 +9,7 @@ import MenuIcon from '@mui/icons-material/Menu';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import AddIcon from '@mui/icons-material/Add';
 import MessagesInput from './MessagesInput.js';
+import Message from './Message.js';
 var protobuf = require("protobufjs");
 let protos = await load_protobufs();
 
@@ -146,16 +147,38 @@ function MessagesScreen() {
     }, [messageList.length, auth]);
 
 
-	let message_elements;
+	let message_elements = [];
+	let [clickedMessages, setClickedMessages] = useState([]);
     if (auth !== undefined) {
-        message_elements = <div className='messagesList'>
-            {/* Render chat messages here */}
-            {messageList.map((message2, i) => (
-                (((message2.sender == auth.email && message2.recipients[0] == recipient) || (message2.sender == recipient && message2.recipients[0] == auth.email)) ? <Message message={message2.text} self={(message2.sender === auth.email)} timestamp={message2.sent_timestamp} messageList={messageList} id={i} uuid={message2.uuid}/> : undefined)
-            ))}
-            {/* Add more message items as needed */}
-            <div ref={messagesEndRef} />
-        </div>
+		messageList.forEach((message, id) => {
+			if ((message.sender == auth.email && message.recipients[0] == recipient) || (message.sender == recipient && message.recipients[0] == auth.email)) {
+				const timestamp = new Date(message.timestamp);
+
+				//difference in minutes between messages to show timestamp
+				const time_difference_thresh = 10;
+
+				let showTimestamp = clickedMessages.includes(id);
+				if (id != messageList.length - 1) {
+					var millisDiff = new Date(messageList[id + 1].sent_timestamp) - timestamp;
+					var minutesDiff = Math.floor((millisDiff/1000)/60);
+					if (minutesDiff > time_difference_thresh) {
+						showTimestamp = true;
+					}
+				}
+				message_elements.push(
+					<Message message={message} self={(message.sender == auth.email)} onClick={() => {
+						if (!clickedMessages.includes(id)) {
+							clickedMessages.push(id);
+						} else {
+							clickedMessages.splice(clickedMessages.indexOf(id), 1);
+						}
+						setClickedMessages(clickedMessages);
+						console.log("clicked");
+						forceUpdate();
+					}} showTimestamp={showTimestamp} timestamp={timestamp}/>
+				);
+			}
+		});
     }
 	return (
 		<div className='flex-container'>
@@ -207,7 +230,10 @@ function MessagesScreen() {
 				
 			</div>
 			<div className='MessagesContainer'>
-				{message_elements}
+				<div className='messagesList'>
+					{message_elements}
+					<div ref={messagesEndRef} />
+        		</div>
 				<MessagesInput onInputChange={handleTextFieldChange} inputValue={fieldValue} onSendClicked={() => {handleSend(fieldValue, recipient); setFieldValue("");}}/>
 			</div>
 		</div>
@@ -337,43 +363,6 @@ function afterGetmessages(messages)
 {
   //console.log(messages);
   return messages;
-}
-
-const Message = (props) => {
-	const message = props.message ? props.message : "no message";
-	const self = props.self;
-	const timestamp = new Date(props.timestamp);
-	//passing in the message list allows to be able to compare to other messagess
-	const messageList = props.messageList;
-	//id is the number message it is
-	const id = props.id;
-	const uuid = props.uuid;
-
-	//difference in minutes between messages to show timestamp
-	const time_difference_thresh = 10;
-
-	var showTimestamp = false;
-
-	if (id != messageList.length - 1)
-	{
-		var millisDiff = new Date(messageList[id + 1].sent_timestamp) - timestamp;
-		var minutesDiff = Math.floor((millisDiff/1000)/60);
-		if (minutesDiff > time_difference_thresh)
-		{
-			showTimestamp = true;
-		}
-	}
-	
-
-	return (
-		<div id={uuid} className={self ? 'selfMessageWrapper' : 'otherMessageWrapper'}>
-			<div className={self ? 'selfInnerMessage' : 'otherInnerMessage'}>
-				<p>{message}</p>
-			</div>
-			
-			<p style={{display: (showTimestamp ? 'block' : 'none')}} className='timestamp'>{timestamp.getHours()%12}:{timestamp.getMinutes()}</p>
-		</div>
-	);
 }
 
 export default MessagesScreen;
