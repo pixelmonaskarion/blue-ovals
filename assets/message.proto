@@ -3,7 +3,7 @@ syntax = "proto3";
 message Message {
     string text = 1;
     string uuid = 2;
-    string timestamp = 3;
+    string sent_timestamp = 3;
     string aboutuuid = 4; //for reactions, replies, and receipts, this stores the uuid this message is about
     bool reply = 5; //true if this message is a reply
     //for these two just don't set them if the message isn't a receipt/reaction

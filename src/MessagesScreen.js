@@ -38,8 +38,8 @@ function MessagesScreen() {
 
 	currentNewMessageCallback = (message) => {
 		console.log("websocket message");
-		let newMessagesList = messageList;
-		newMessagesList.push(message);
+		console.log(message);
+		let newMessagesList = [...messageList, message];
 		setMessageList(newMessagesList);
 		setChats(getUniqueChats(newMessagesList, auth.email));
 		forceUpdate();
@@ -152,14 +152,14 @@ function MessagesScreen() {
     if (auth !== undefined) {
 		messageList.forEach((message, id) => {
 			if ((message.sender == auth.email && message.recipients[0] == recipient) || (message.sender == recipient && message.recipients[0] == auth.email)) {
-				const timestamp = new Date(message.timestamp);
+				const timestamp = new Date(new Number(message.sentTimestamp));
 
 				//difference in minutes between messages to show timestamp
 				const time_difference_thresh = 10;
 
 				let showTimestamp = clickedMessages.includes(id);
 				if (id != messageList.length - 1) {
-					var millisDiff = new Date(messageList[id + 1].sent_timestamp) - timestamp;
+					var millisDiff = new Date(messageList[id + 1].sentTimestamp) - timestamp;
 					var minutesDiff = Math.floor((millisDiff/1000)/60);
 					if (minutesDiff > time_difference_thresh) {
 						showTimestamp = true;
@@ -173,7 +173,7 @@ function MessagesScreen() {
 							clickedMessages.splice(clickedMessages.indexOf(id), 1);
 						}
 						setClickedMessages(clickedMessages);
-						console.log("clicked");
+						console.log("clicked", message);
 						forceUpdate();
 					}} showTimestamp={showTimestamp} timestamp={timestamp}/>
 				);
@@ -341,22 +341,22 @@ function add_chat_info(message, recipient) {
 
 function new_message(text, replyuuid) {
 	let Message = protos.lookupType("Message");
-	return Message.create({text: text, uuid: window.crypto.randomUUID(), timestamp: ""+Date.now(), aboutuuid: replyuuid, reply: (replyuuid !== undefined)});
+	return Message.create({text: text, uuid: window.crypto.randomUUID(), sentTimestamp: ""+Date.now(), aboutuuid: replyuuid, reply: (replyuuid !== undefined)});
 }
 
 function new_reaction(reaction, aboutuuid) {
 	let Message = protos.lookupType("Message");
-	return Message.create({text: "", uuid: window.crypto.randomUUID(), timestamp: ""+Date.now(), aboutuuid: aboutuuid, reaction: reaction});
+	return Message.create({text: "", uuid: window.crypto.randomUUID(), sentTimestamp: ""+Date.now(), aboutuuid: aboutuuid, reaction: reaction});
 }
 
 function new_delivered_receipt(message_uuid) {
 	let Message = protos.lookupType("Message");
-	return Message.create({text: "", uuid: window.crypto.randomUUID(), timestamp: ""+Date.now(), aboutuuid: message_uuid, status: 0});
+	return Message.create({text: "", uuid: window.crypto.randomUUID(), sentTimestamp: ""+Date.now(), aboutuuid: message_uuid, status: 0});
 }
 
 function new_read_receipt(message_uuid) {
 	let Message = protos.lookupType("Message");
-	return Message.create({text: "", uuid: window.crypto.randomUUID(), timestamp: ""+Date.now(), aboutuuid: message_uuid, status: 1});
+	return Message.create({text: "", uuid: window.crypto.randomUUID(), sentTimestamp: ""+Date.now(), aboutuuid: message_uuid, status: 1});
 }
 
 function afterGetmessages(messages)
