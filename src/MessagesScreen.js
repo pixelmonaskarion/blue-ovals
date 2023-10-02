@@ -197,9 +197,7 @@ function MessagesScreen() {
 									setRecipient(result.sender == auth.email ? result.recipients[0] : result.sender);
 									document.getElementById(result.uuid).scrollIntoView();
 								}}>
-									<ListItemText>
-										{result.text}
-									</ListItemText>
+									<ListItemText secondary={(result.sender == auth.email ? result.recipients[0] : result.sender)} primary={result.text}/>
 								</ListItemButton>
 							</ListItem>
 						))}

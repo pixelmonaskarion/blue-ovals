@@ -83,7 +83,7 @@ body {
 }
 
 .drawer {
-  flex: 1;
+  flex: 2;
   width: 10vw;
   border-right: 1px solid gray;
   overflow-x: hidden;
@@ -95,5 +95,5 @@ body {
 }
 
 .MessagesContainer {
-  flex: 3;
+  flex: 5;
 }
