@@ -29,6 +29,8 @@ function MessagesScreen() {
 
 	const [chats, setChats] = useState([]);
 
+	const [searchResults, setSearchResults] = useState([]);
+
 	const forceUpdate = useForceUpdate();
 
 	const [showNewChat, setShowNewChat] = useState(false);
@@ -75,8 +77,38 @@ function MessagesScreen() {
 
     const messagesEndRef = useRef();
 
+	const chatsListRef = useRef();
+
+	const searchResultsRef = useRef();
+
 	function handleTextFieldChange(e) {
 		setFieldValue(e.target.value);
+	}
+
+	function handleSearchChange(e) {
+		if (e.target.value == '')
+		{
+			searchResultsRef.current.style.display = 'none';
+			chatsListRef.current.style.display = 'block';
+			return;
+		}
+
+		searchResultsRef.current.style.display = 'block';
+		chatsListRef.current.style.display = 'none';
+
+		var result = [];
+
+		for (var i = 0; i < messageList.length; i++)
+		{
+			if (messageList[i].text.toLowerCase().includes(e.target.value.toLowerCase()))
+			{
+				result.push(messageList[i]);
+			}
+		}
+
+		setSearchResults(result);
+
+		console.log(result);
 	}
 
 	function switchChatInputChange(e) {
@@ -119,7 +151,7 @@ function MessagesScreen() {
         message_elements = <div className='messagesList'>
             {/* Render chat messages here */}
             {messageList.map((message2, i) => (
-                (((message2.sender == auth.email && message2.recipients[0] == recipient) || (message2.sender == recipient && message2.recipients[0] == auth.email)) ? <Message message={message2.text} self={(message2.sender === auth.email)} timestamp={message2.sent_timestamp} messageList={messageList} id={i}/> : undefined)
+                (((message2.sender == auth.email && message2.recipients[0] == recipient) || (message2.sender == recipient && message2.recipients[0] == auth.email)) ? <Message message={message2.text} self={(message2.sender === auth.email)} timestamp={message2.sent_timestamp} messageList={messageList} id={i} uuid={message2.uuid}/> : undefined)
             ))}
             {/* Add more message items as needed */}
             <div ref={messagesEndRef} />
@@ -130,7 +162,7 @@ function MessagesScreen() {
 			<div className='drawer'>
 
 				<div style={{display: 'flex', flexDirection: 'row', padding: '5px'}}>
-					<TextField label='Search' variant='standard'/>
+					<TextField label='Search' variant='standard' onChange={handleSearchChange}/>
 					<IconButton onClick={() => setShowNewChat(!showNewChat)}>
 						<AddIcon/>
 					</IconButton>
@@ -143,18 +175,38 @@ function MessagesScreen() {
 				
 
 				<Divider/>
+				<div ref={chatsListRef}>
+					<List>
+						{chats.map((chat, i) => (
+							<ListItem>
+								<ListItemButton onClick={() => setRecipient(chat)}>
+									<ListItemText>
+										{chat}
+									</ListItemText>
+								</ListItemButton>
+							</ListItem>
+						))}
+					</List>
+				</div>
+				<div ref={searchResultsRef} style={{display: 'none'}}>
+					<h3>Search Results</h3>
+					<List>
+						{searchResults.map((result, i) => (
+							<ListItem>
+								<ListItemButton onClick={() => {
+									setRecipient(result.sender == auth.email ? result.recipients[0] : result.sender);
+									document.getElementById(result.uuid).scrollIntoView();
+								}}>
+									<ListItemText>
+										{result.text}
+									</ListItemText>
+								</ListItemButton>
+							</ListItem>
+						))}
+					</List>
+				</div>
 
-				<List>
-					{chats.map((chat, i) => (
-						<ListItem>
-							<ListItemButton onClick={() => setRecipient(chat)}>
-								<ListItemText>
-									{chat}
-								</ListItemText>
-							</ListItemButton>
-						</ListItem>
-					))}
-				</List>
+				
 			</div>
 			<div className='MessagesContainer'>
 				{message_elements}
@@ -297,6 +349,7 @@ const Message = (props) => {
 	const messageList = props.messageList;
 	//id is the number message it is
 	const id = props.id;
+	const uuid = props.uuid;
 
 	//difference in minutes between messages to show timestamp
 	const time_difference_thresh = 10;
@@ -315,7 +368,7 @@ const Message = (props) => {
 	
 
 	return (
-		<div className={self ? 'selfMessageWrapper' : 'otherMessageWrapper'}>
+		<div id={uuid} className={self ? 'selfMessageWrapper' : 'otherMessageWrapper'}>
 			<div className={self ? 'selfInnerMessage' : 'otherInnerMessage'}>
 				<p>{message}</p>
 			</div>
