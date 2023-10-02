@@ -1,12 +1,10 @@
 import { useEffect, useState, useRef } from 'react';
 import Crypto from "./Crypto.js"
-import { styled, useTheme } from '@mui/material/styles';
+import { styled } from '@mui/material/styles';
 import React from 'react';
 import ProtoFile from "../assets/message.proto";
-import { TextField, IconButton, Drawer, Button, Divider} from '@mui/material';
-import { List, ListItem, ListItemIcon, ListItemText, ListItemButton } from '@mui/material';
-import MenuIcon from '@mui/icons-material/Menu';
-import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import { TextField, IconButton, Button, Divider} from '@mui/material';
+import { List, ListItem, ListItemText, ListItemButton } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import MessagesInput from './MessagesInput.js';
 import Message from './Message.js';
@@ -39,7 +37,16 @@ function MessagesScreen() {
 	currentNewMessageCallback = (message) => {
 		console.log("websocket message");
 		console.log(message);
-		let newMessagesList = [...messageList, message];
+		let newMessagesList = messageList;
+		if (message.reaction === undefined && message.status === undefined) {
+			newMessagesList.push(message);
+		} else {
+			newMessagesList.forEach((list_message, i) => {
+				if (list_message.uuid === message.aboutuuid) {
+					newMessagesList[i].children.push(message);
+				}
+			});
+		}
 		setMessageList(newMessagesList);
 		setChats(getUniqueChats(newMessagesList, auth.email));
 		forceUpdate();
@@ -60,6 +67,7 @@ function MessagesScreen() {
             setAuth(data);
         });
 		window.electronAPI.getAllMessages().then(data => {
+			console.log("got messages: ", data);
 			//get all of the unique chats you are in
 			setChats(getUniqueChats(data, email));
 			setMessageList(afterGetmessages(data));
@@ -175,7 +183,10 @@ function MessagesScreen() {
 						setClickedMessages(clickedMessages);
 						console.log("clicked", message);
 						forceUpdate();
-					}} showTimestamp={showTimestamp} timestamp={timestamp}/>
+					}} showTimestamp={showTimestamp} timestamp={timestamp}
+					readMessage={() => {
+						send_message(message.recipients[0], new_read_receipt(message.uuid));	
+					}}/>
 				);
 			}
 		});
@@ -258,7 +269,6 @@ async function load_protobufs() {
 
 async function send_message(recipient, message_info) {
 	let message = add_chat_info(message_info, recipient);
-	console.log(message);
 	let auth = await window.electronAPI.getAuth();
 	let ids = await (await fetch("https://chrissytopher.com:40441/query-ids/" + recipient)).json();
 	ids.ids.forEach(async device => {
@@ -281,8 +291,8 @@ async function send_message(recipient, message_info) {
 				})
 			});
 			console.log("successfully sent message to device", device);
-		} catch {
-			console.log("failed to send message to device", device);
+		} catch (e) {
+			console.log(e, "failed to send message to device", device);
 		}
 	});
 	if (recipient !== auth.email) {

@@ -159,38 +159,38 @@ function save_message(message, sender) {
 	let sql_command = `INSERT INTO messages VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 	const stmt = messages_db.prepare(sql_command);
 	stmt.run(message_object.uuid, message_object.text, sender, message_object.sentTimestamp, message_object.reply, message_object.aboutuuid, message_object.status, message_object.reaction, serialize_recipients(message_object), message_object.chatid);
-	return {...message_object, sender: sender};
+	//assuming new messages don't already have children
+	return {...message_object, sender: sender, children: []};
 }
 
 Electron.ipcMain.handle('get-all-messages', async (event) => {
-	let promise = new Promise((resolve, reject) => {
-		let messages = [];
-		messages_db.each("SELECT * FROM messages", (err, row) => {
-			if (err) {
-				reject(err);
-			}
-			messages.push(deserialize_recipients(row));
-		}, () => {
-			resolve(messages);
-		});
-	})
-	return promise;
+	return getSomeMessages("SELECT * FROM messages WHERE aboutuuid IS NULL OR reply=1");
 });
 
 Electron.ipcMain.handle('get-some-messages', async (event, sql) => {
+	return getSomeMessages(sql);
+});
+
+async function getSomeMessages(sql) {
 	let promise = new Promise((resolve, reject) => {
 		let messages = [];
-		messages_db.each(`SELECT ${sql} FROM messages`, (err, row) => {
+		messages_db.each(sql, (err, row) => {
 			if (err) {
 				reject(err);
 			}
-			messages.push(deserialize_recipients(row));
-		}, () => {
+			let message = deserialize_recipients(row);
+			//TODO: sql injection can happen here
+			message.children = getSomeMessages(`SELECT * FROM messages WHERE aboutuuid='${row.uuid}' AND reply=0`);
+			messages.push(message);
+		}, async () => {
+			for (var i = 0; i < messages.length; i++) {
+				messages[i].children = await messages[i].children;
+			}
 			resolve(messages);
 		});
 	})
 	return promise;
-});
+}
 
 Electron.ipcMain.handle('start-websocket', async (event) => {
 	const ws = new WebSocket('wss://chrissytopher.com:40441/events/' + auth.uuid);
