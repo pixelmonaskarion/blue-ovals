@@ -7,6 +7,7 @@ import { TextField, IconButton, Drawer, Button, Divider} from '@mui/material';
 import { List, ListItem, ListItemIcon, ListItemText, ListItemButton } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import AddIcon from '@mui/icons-material/Add';
 import MessagesInput from './MessagesInput.js';
 var protobuf = require("protobufjs");
 let protos = await load_protobufs();
@@ -29,6 +30,8 @@ function MessagesScreen() {
 	const [chats, setChats] = useState([]);
 
 	const forceUpdate = useForceUpdate();
+
+	const [showNewChat, setShowNewChat] = useState(false);
 
 	currentNewMessageCallback = (message) => {
 		console.log("websocket message");
@@ -125,11 +128,15 @@ function MessagesScreen() {
 	return (
 		<div className='flex-container'>
 			<div className='drawer'>
-				<div style={{display: "flex", alignItems: "center", justifyContent: "flex-end"}}>
-					
+
+				<div style={{display: 'flex', flexDirection: 'row', padding: '5px'}}>
+					<TextField label='Search' variant='standard'/>
+					<IconButton onClick={() => setShowNewChat(!showNewChat)}>
+						<AddIcon/>
+					</IconButton>
 				</div>
 				
-				<div style={{padding: '10px', textAlign: 'center'}}>
+				<div style={{padding: '10px', textAlign: 'center', display: (showNewChat ? 'block' : 'none')}}>
 					<TextField onChange={switchChatInputChange} label="Recipient" variant='standard'/>
 					<Button onClick={switchRecipient}>Chat</Button>
 				</div>
