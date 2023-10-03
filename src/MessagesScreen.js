@@ -157,6 +157,7 @@ function MessagesScreen() {
 
 	let message_elements = [];
 	let [clickedMessages, setClickedMessages] = useState([]);
+	let [selectedMessage, setSelectedMessage] = useState(undefined);
     if (auth !== undefined) {
 		messageList.forEach((message, id) => {
 			if ((message.sender == auth.email && message.recipients[0] == recipient) || (message.sender == recipient && message.recipients[0] == auth.email)) {
@@ -181,11 +182,14 @@ function MessagesScreen() {
 							clickedMessages.splice(clickedMessages.indexOf(id), 1);
 						}
 						setClickedMessages(clickedMessages);
-						console.log("clicked", message);
 						forceUpdate();
 					}} showTimestamp={showTimestamp} timestamp={timestamp}
 					readMessage={() => {
 						send_message(message.recipients[0], new_read_receipt(message.uuid));	
+					}}
+					selected={message.uuid === selectedMessage} setSelected={setSelectedMessage}
+					react={(emoji) => {
+						send_message(message.recipients[0], new_reaction(emoji, message.uuid));
 					}}/>
 				);
 			}
@@ -240,7 +244,7 @@ function MessagesScreen() {
 
 				
 			</div>
-			<div className='MessagesContainer'>
+			<div className='MessagesContainer' onClick={() => {setSelectedMessage(undefined)}}>
 				<div className='messagesList'>
 					{message_elements}
 					<div ref={messagesEndRef} />
@@ -356,17 +360,17 @@ function new_message(text, replyuuid) {
 
 function new_reaction(reaction, aboutuuid) {
 	let Message = protos.lookupType("Message");
-	return Message.create({text: "", uuid: window.crypto.randomUUID(), sentTimestamp: ""+Date.now(), aboutuuid: aboutuuid, reaction: reaction});
+	return Message.create({text: "", uuid: window.crypto.randomUUID(), sentTimestamp: ""+Date.now(), aboutuuid: aboutuuid, reaction: reaction, reply: false});
 }
 
 function new_delivered_receipt(message_uuid) {
 	let Message = protos.lookupType("Message");
-	return Message.create({text: "", uuid: window.crypto.randomUUID(), sentTimestamp: ""+Date.now(), aboutuuid: message_uuid, status: 0});
+	return Message.create({text: "", uuid: window.crypto.randomUUID(), sentTimestamp: ""+Date.now(), aboutuuid: message_uuid, status: 0, reply: false});
 }
 
 function new_read_receipt(message_uuid) {
 	let Message = protos.lookupType("Message");
-	return Message.create({text: "", uuid: window.crypto.randomUUID(), sentTimestamp: ""+Date.now(), aboutuuid: message_uuid, status: 1});
+	return Message.create({text: "", uuid: window.crypto.randomUUID(), sentTimestamp: ""+Date.now(), aboutuuid: message_uuid, status: 1, reply: false});
 }
 
 function afterGetmessages(messages)

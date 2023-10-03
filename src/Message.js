@@ -1,4 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { useLongPress } from 'use-long-press';
+import { MessageReaction, Reactions } from './Reactions';
 
 function Message(props) {
 	const message = props.message;
@@ -8,12 +10,18 @@ function Message(props) {
 
 	const messageRef = useRef(undefined);
 
+	const selected = props.selected;
+
 	let highest_status = {status: 0, timestamp: message.sentTimestamp, text: "Sent"};
+	let reactions = [];
 	message.children.forEach(child => {
 		if (child.status !== undefined) {
 			if (child.status > highest_status.status) {
 				highest_status = {status: child.status, timestamp: child.sentTimestamp, text: (child.status === 0) ? "Delivers" : "Read"};
 			}
+		}
+		if (child.reaction) {
+			reactions.push(child);
 		}
 	});
 
@@ -38,11 +46,32 @@ function Message(props) {
 
 	const timestamp = new Date(new Number(highest_status.timestamp));
 
+	const longPressAction = useLongPress(()=>{props.setSelected(message.uuid);}, {onFinish: (event) => {
+		console.log("long pressed");
+		event.preventDefault();
+		setTimeout(() => {
+			props.setSelected(message.uuid);
+		}, 0)
+	  }});
+
+	let reactionSelect;
+	if (selected) {
+		reactionSelect = <Reactions from_me={self ? "Me" : "Other"} react={props.react}/>
+	}
+	let reactionElements = [];
+	reactions.forEach((reaction) => {
+		reactionElements.push(<MessageReaction color="lightblue" user={reaction.sender} emoji={reaction.reaction}/>)
+	});
+
 	return (
-		<div id={message.uuid} className={self ? 'selfMessageWrapper' : 'otherMessageWrapper'} onClick={props.onClick} ref={messageRef}>
-			<div className={self ? 'selfInnerMessage' : 'otherInnerMessage'}>
+		<div {...longPressAction()} id={message.uuid} className={self ? 'selfMessageWrapper' : 'otherMessageWrapper'} onClick={() => {props.onClick();}} ref={messageRef}>
+			{reactionSelect}
+
+			<div className={self ? 'selfInnerMessage' : 'otherInnerMessage'} style={selected ? {backgroundColor: "lightcoral"} : {}}>
 				<p>{message.text}</p>
 			</div>
+
+			{reactionElements}
 			
 			<p style={{display: (showTimestamp ? 'block' : 'none')}} className='timestamp'>{highest_status.text} {(timestamp.getHours()%12 == 0) ? 12 : timestamp.getHours()%12}:{timestamp.getMinutes()}</p>
 		</div>

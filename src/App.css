@@ -97,3 +97,102 @@ body {
 .MessagesContainer {
   flex: 5;
 }
+
+.ReactionsOuterMe {
+	position: relative;
+	left: 100%;
+	width: 0;
+}
+
+.ReactionsMe {
+	margin-top: 5px;
+	margin-bottom: 5px;
+	width: 210px;
+	height: 30px;
+	right: 220px;
+	position: relative;
+	background-color: #403e51;
+	z-index: 1;
+	border-radius: 15px;
+}
+
+.ReactionsOuterOther {
+	position: relative;
+	width: 0;
+}
+
+.ReactionsOther {
+	margin-top: 5px;
+	margin-bottom: 5px;
+	width: 210px;
+	height: 30px;
+	left: 10px;
+	position: relative;
+	background-color: #403e51;
+	z-index: 1;
+	border-radius: 15px;
+}
+
+.Reaction {
+	width: 25px;
+	height: 25px;
+	margin: 2.5px;
+}
+
+.ReactionBackground {
+	display: inline-block;
+	width: 30px;
+	height: 30px;
+	margin: 0px;
+	border-radius: 15px;
+}
+
+.MessageReaction {
+	width: 20px;
+	height: 20px;
+	margin: 2.5px;
+}
+
+.MessageReactionBackground {
+	display: inline-block;
+	width: 25px;
+	height: 25px;
+	margin: 0px;
+	border-radius: 12.5px;
+}
+
+.MessageReactionsOuterMe {
+	width: fit-content;
+	height: 30px;
+	margin-left: auto;
+	margin-right: 50px;
+}
+
+.MessageReactionsOuterOther {
+	width: fit-content;
+	height: 30px;
+	margin-right: auto;
+	margin-left: 50px;
+}
+
+.MessageReactionOuter {
+	display: inline-block;
+}
+
+.MessageReactionInfo {
+	display: flex;
+	width: fit-content;
+	text-align: center;
+	background-color: #403e51;
+	padding-left: 5px;
+	padding-right: 5px;
+	position: absolute;
+	transform:translateX(-25%);
+	z-index: 1;
+	border-radius: 5px;
+	transition-duration: 0.4s;
+}
+
+.ReactionBackground:hover {
+	background-color: #57546d;
+}
