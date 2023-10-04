@@ -1,5 +1,7 @@
 import React from 'react';
-import { TextField, IconButton} from '@mui/material';
+import { TextField, IconButton, SpeedDial, SpeedDialAction} from '@mui/material';
+import SpeedDialIcon from '@mui/material/SpeedDialIcon';
+import AttachFileIcon from '@mui/icons-material/AttachFile';
 import SendIcon from '@mui/icons-material/Send';
 function MessagesInput(props) {
     return <div className='inputContainer'>

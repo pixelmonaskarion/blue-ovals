@@ -20,6 +20,17 @@ body {
   background-color: #323232;
 }
 
+#chatHeader {
+  position: fixed;
+  height: 7vh;
+  box-shadow: 0 3px 3px -3px rgb(0, 0, 0);
+  width: -webkit-fill-available;
+  text-align: left;
+  line-height: 1vh;
+  background-color: rgb(50, 50, 50);
+  opacity: 0.9;
+}
+
 .inputContainer {
   display: flex;
   flex: 1;
