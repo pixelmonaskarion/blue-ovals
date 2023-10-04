@@ -128,20 +128,6 @@ function MessagesScreen() {
 		setRecipient(recipientInputValue);
 	}
 
-	const handleDrawerOpen = () => {
-		setOpen(true);
-	};
-
-	const handleDrawerClose = () => {
-		console.log("close Drawer");
-		setOpen(false);
-	};
-
-	const DrawerHeader = styled('div')(() => ({
-		display: 'flex',
-		alignItems: 'center',
-		justifyContent: 'flex-end',
-	}));
 
     useEffect(() => {
         if (messageList.length)
@@ -247,7 +233,7 @@ function MessagesScreen() {
 			<div className='MessagesContainer' onClick={() => {setSelectedMessage(undefined)}}>
 				<div className='messagesList'>
 					{message_elements}
-					<div ref={messagesEndRef} />
+					<div ref={messagesEndRef}/>
         		</div>
 				<MessagesInput onInputChange={handleTextFieldChange} inputValue={fieldValue} onSendClicked={() => {handleSend(fieldValue, recipient); setFieldValue("");}}/>
 			</div>

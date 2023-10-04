@@ -3,7 +3,7 @@ import { TextField, IconButton} from '@mui/material';
 import SendIcon from '@mui/icons-material/Send';
 function MessagesInput(props) {
     return <div className='inputContainer'>
-        <TextField className='messageInput' label="Type message..." variant="standard" onChange={props.onInputChange} value={props.inputValue}/>
+        <input type="text" className='messageInput' placeholder="Type message..." onChange={props.onInputChange} value={props.inputValue}/>
         <IconButton onClick={props.onSendClicked}>
             <SendIcon/>
         </IconButton>
