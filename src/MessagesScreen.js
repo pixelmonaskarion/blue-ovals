@@ -180,6 +180,11 @@ function MessagesScreen() {
 				);
 			}
 		});
+		message_elements.push(
+			<div style={{height: "8vh"}}>
+				<p style={{visibility: 'hidden'}}>hi</p>
+			</div>
+		);
     }
 	return (
 		<div className='flex-container'>
