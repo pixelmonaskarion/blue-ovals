@@ -34,7 +34,7 @@ body {
 .inputContainer {
   display: flex;
   flex: 1;
-  height: 8vh;
+  height: 10vh;
   position: fixed;
   align-items: center;
   padding: 0.5vh;
@@ -58,6 +58,7 @@ input:focus {
   background-color: #404040;
   border: none;
   padding-left: 10px;
+  color: white;
 }
 
 .selfMessageWrapper {
@@ -223,4 +224,29 @@ input:focus {
 
 .ReactionBackground:hover {
 	background-color: #57546d;
+}
+
+::-webkit-scrollbar {
+  display: block;
+  width: 7px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+  
+::-webkit-scrollbar-thumb {
+  background-color: grey;
+  border-radius: 5px;
+  border-right: none;
+  border-left: none;
+}
+
+::-webkit-scrollbar-track-piece:end {
+  background: transparent;
+  margin-bottom: 10vh; 
+}
+
+::-webkit-scrollbar-track-piece:start {
+  background: transparent;
+  margin-top: 7vh;
 }

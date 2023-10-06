@@ -145,6 +145,11 @@ function MessagesScreen() {
 	let [clickedMessages, setClickedMessages] = useState([]);
 	let [selectedMessage, setSelectedMessage] = useState(undefined);
     if (auth !== undefined) {
+		message_elements.push(
+			<div style={{height: "7vh"}}>
+				<p style={{visibility: 'hidden'}}>hi</p>
+			</div>
+		);
 		messageList.forEach((message, id) => {
 			if ((message.sender == auth.email && message.recipients[0] == recipient) || (message.sender == recipient && message.recipients[0] == auth.email)) {
 				const timestamp = new Date(new Number(message.sentTimestamp));
@@ -181,7 +186,7 @@ function MessagesScreen() {
 			}
 		});
 		message_elements.push(
-			<div style={{height: "8vh"}}>
+			<div style={{height: "10vh"}}>
 				<p style={{visibility: 'hidden'}}>hi</p>
 			</div>
 		);
@@ -237,7 +242,7 @@ function MessagesScreen() {
 			</div>
 			<div className='MessagesContainer' onClick={() => {setSelectedMessage(undefined)}}>
 				<div id='chatHeader'>
-					<p style={{opacity: '1', marginLeft: '20px', fontFamily: 'Arial, sand-serif'}}>{recipient}</p>
+					<p style={{opacity: '1', marginLeft: '20px', fontFamily: 'Arial, sand-serif', color:"white"}}>{recipient}</p>
 				</div>
 				<div className='messagesList'>
 					{message_elements}
