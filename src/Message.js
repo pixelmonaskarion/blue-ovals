@@ -60,20 +60,21 @@ function Message(props) {
 	}
 	let reactionElements = [];
 	reactions.forEach((reaction) => {
-		reactionElements.push(<MessageReaction color="lightblue" user={reaction.sender} emoji={reaction.reaction}/>)
+		reactionElements.push(<MessageReaction color="#262628" user={reaction.sender} emoji={reaction.reaction}/>)
 	});
 
 	return (
 		<div {...longPressAction()} id={message.uuid} className={self ? 'selfMessageWrapper' : 'otherMessageWrapper'} onClick={() => {props.onClick();}} ref={messageRef}>
 			{reactionSelect}
 
-			<div className={self ? 'selfInnerMessage' : 'otherInnerMessage'} style={selected ? {backgroundColor: "lightcoral"} : {}}>
-				<p>{message.text}</p>
+			<div className={self ? 'selfInnerMessage' : 'otherInnerMessage'} style={selected ? {background: "#7cacf8"} : {}}>
+				<p className='messageText'>{message.text}</p>
 			</div>
-
-			{reactionElements}
+			<div className='MessageReactionsWrapper' style={{textAlign: self ? "right" : "left"}}>
+				{reactionElements}
+			</div>
 			
-			<p style={{display: (showTimestamp ? 'block' : 'none')}} className='timestamp'>{highest_status.text} {(timestamp.getHours()%12 == 0) ? 12 : timestamp.getHours()%12}:{timestamp.getMinutes()}</p>
+			<p style={{display: (showTimestamp ? 'block' : 'none'), textAlign: self ? "right" : "left"}} className='timestamp'>{highest_status.text} {(timestamp.getHours()%12 == 0) ? 12 : timestamp.getHours()%12}:{timestamp.getMinutes()}</p>
 		</div>
 	);
 }

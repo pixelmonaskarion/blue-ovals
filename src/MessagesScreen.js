@@ -242,7 +242,7 @@ function MessagesScreen() {
 			</div>
 			<div className='MessagesContainer' onClick={() => {setSelectedMessage(undefined)}}>
 				<div id='chatHeader'>
-					<p style={{opacity: '1', marginLeft: '20px', fontFamily: 'Arial, sand-serif', color:"white"}}>{recipient}</p>
+					<p className='MessagesHeader'>{recipient}</p>
 				</div>
 				<div className='messagesList'>
 					{message_elements}

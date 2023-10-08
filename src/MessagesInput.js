@@ -6,7 +6,7 @@ import SendIcon from '@mui/icons-material/Send';
 function MessagesInput(props) {
     return <div className='inputContainer'>
         <input type="text" id='messageInput' className='messageInput' placeholder="Type message..." onChange={props.onInputChange} value={props.inputValue}/>
-        <IconButton onClick={props.onSendClicked} style={{backgroundColor: "#404040"}}>
+        <IconButton onClick={props.onSendClicked} style={{backgroundColor: "#404040", marginRight: "1vw"}}>
             <SendIcon/>
         </IconButton>
     </div>
