@@ -155,6 +155,7 @@ function deserialize_recipients(row) {
 }
 
 function save_message(message, sender) {
+	console.log("saving message", message);
 	let message_object = protos.lookupType("Message").toObject(message);
 	let sql_command = `INSERT INTO messages VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 	const stmt = messages_db.prepare(sql_command);

@@ -24,8 +24,7 @@ function Message(props) {
 			reactions.push(child);
 		}
 	});
-
-	let [sentRead, setSentRead] = useState(highest_status.status === 1);
+	let [sentRead, setSentRead] = useState(highest_status.status == 1);
 
 	useEffect(() => {
 		if (!sentRead) {

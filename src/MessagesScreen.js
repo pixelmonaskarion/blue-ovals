@@ -80,7 +80,8 @@ function MessagesScreen() {
 
 	const [recipientInputValue, setRecipientInputValue] = useState('');
 
-	const [recipient, setRecipient] = useState('christopher@huntwork.net');
+	const [recipients, setRecipients] = useState(['christopher@huntwork.net']);
+	const [chatid, setChatId] = useState(undefined);
 	
 	const [drawerOpen, setOpen] = useState(false);
 
@@ -125,7 +126,8 @@ function MessagesScreen() {
 	}
 
 	function switchRecipient() {
-		setRecipient(recipientInputValue);
+		setRecipients([...recipientInputValue.split("\n"), auth.email]);
+		setChatId(window.crypto.randomUUID())
 	}
 
 
@@ -151,7 +153,7 @@ function MessagesScreen() {
 			</div>
 		);
 		messageList.forEach((message, id) => {
-			if ((message.sender == auth.email && message.recipients[0] == recipient) || (message.sender == recipient && message.recipients[0] == auth.email)) {
+			if (recipients.length == 1 && ((message.sender == auth.email && message.recipients[0] == recipients[0]) || (message.sender == recipients[0] && message.recipients[0] == auth.email)) || (chatid == message.chatid && chatid != undefined)) {
 				const timestamp = new Date(new Number(message.sentTimestamp));
 
 				//difference in minutes between messages to show timestamp
@@ -176,11 +178,11 @@ function MessagesScreen() {
 						forceUpdate();
 					}} showTimestamp={showTimestamp} timestamp={timestamp}
 					readMessage={() => {
-						send_message(message.recipients[0], new_read_receipt(message.uuid));	
+						send_message(message.recipients, message.chatid, new_read_receipt(message.uuid));
 					}}
 					selected={message.uuid === selectedMessage} setSelected={setSelectedMessage}
 					react={(emoji) => {
-						send_message(message.recipients[0], new_reaction(emoji, message.uuid));
+						send_message(message.recipients, message.chatid, new_reaction(emoji, message.uuid));
 					}}/>
 				);
 			}
@@ -191,6 +193,13 @@ function MessagesScreen() {
 			</div>
 		);
     }
+
+	let headerText = "";
+	recipients.forEach((recipient) => {
+		headerText += recipient + ", "
+	});
+	headerText = headerText.slice(0, -2);
+
 	return (
 		<div className='flex-container'>
 			<div className='drawer'>
@@ -203,7 +212,7 @@ function MessagesScreen() {
 				</div>
 				
 				<div style={{padding: '10px', textAlign: 'center', display: (showNewChat ? 'block' : 'none')}}>
-					<TextField onChange={switchChatInputChange} label="Recipient" variant='standard'/>
+					<TextField onChange={switchChatInputChange} label="Recipient" variant='standard' multiline/>
 					<Button onClick={switchRecipient}>Chat</Button>
 				</div>
 				
@@ -211,15 +220,20 @@ function MessagesScreen() {
 				<Divider/>
 				<div ref={chatsListRef}>
 					<List>
-						{chats.map((chat, i) => (
-							<ListItem>
-								<ListItemButton onClick={() => setRecipient(chat)}>
+						{chats.map((chat, i) => {
+							let text  = ""
+							chat.recipients.forEach((recipient) => {
+								text += recipient + ", "
+							});
+							text = text.slice(0, -2);
+							return <ListItem>
+								<ListItemButton onClick={() => {setRecipients(chat.recipients); setChatId(chat.chatid)}}>
 									<ListItemText>
-										{chat}
+										{text}
 									</ListItemText>
 								</ListItemButton>
 							</ListItem>
-						))}
+						})}
 					</List>
 				</div>
 				<div ref={searchResultsRef} style={{display: 'none'}}>
@@ -228,8 +242,9 @@ function MessagesScreen() {
 						{searchResults.map((result, i) => (
 							<ListItem>
 								<ListItemButton onClick={() => {
-									setRecipient(result.sender == auth.email ? result.recipients[0] : result.sender);
-									document.getElementById(result.uuid).scrollIntoView();
+									//TODO: fix search
+									// setRecipient(result.sender == auth.email ? result.recipients[0] : result.sender);
+									// document.getElementById(result.uuid).scrollIntoView();
 								}}>
 									<ListItemText secondary={(result.sender == auth.email ? result.recipients[0] : result.sender)} primary={result.text}/>
 								</ListItemButton>
@@ -242,20 +257,20 @@ function MessagesScreen() {
 			</div>
 			<div className='MessagesContainer' onClick={() => {setSelectedMessage(undefined)}}>
 				<div id='chatHeader'>
-					<p className='MessagesHeader'>{recipient}</p>
+					<p className='MessagesHeader'>{headerText}</p>
 				</div>
 				<div className='messagesList'>
 					{message_elements}
 					<div ref={messagesEndRef}/>
         		</div>
-				<MessagesInput onInputChange={handleTextFieldChange} inputValue={fieldValue} onSendClicked={() => {handleSend(fieldValue, recipient); setFieldValue("");}}/>
+				<MessagesInput onInputChange={handleTextFieldChange} inputValue={fieldValue} onSendClicked={() => {handleSend(fieldValue, recipients, chatid); setFieldValue("");}}/>
 			</div>
 		</div>
 	);
 }
 
-async function handleSend(message, recipient) {
-	send_message(recipient, new_message(message));
+async function handleSend(message, recipients, chatid) {
+	send_message(recipients, chatid, new_message(message));
 }
 
 
@@ -270,35 +285,41 @@ async function load_protobufs() {
 	})
 }
 
-async function send_message(recipient, message_info) {
-	let message = add_chat_info(message_info, recipient);
+async function send_message(recipients, chatid, message_info) {
 	let auth = await window.electronAPI.getAuth();
-	let ids = await (await fetch("https://chrissytopher.com:40441/query-ids/" + recipient)).json();
-	ids.ids.forEach(async device => {
-		try {
-			let Message = protos.lookupType("Message");
-			let encrypted_message = await Crypto.encryptBytes(device.public_key, Message.encode(message).finish());
-			// eslint-disable-next-line no-unused-vars
-			let res = await fetch("https://chrissytopher.com:40441/post-message/", {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-				},
-				body: JSON.stringify({
-					account: {
-						email: auth.email,
-						password: auth.password,
+	if (!recipients.includes(auth.email)) {
+		recipients.push(auth.email);
+	}
+	console.log(recipients, chatid, message_info)
+	let message = add_chat_info(message_info, recipients, chatid);
+	recipients.forEach(async (recipient) => {
+		let ids = await (await fetch("https://chrissytopher.com:40441/query-ids/" + recipient)).json();
+		ids.ids.forEach(async device => {
+			try {
+				let Message = protos.lookupType("Message");
+				let encrypted_message = await Crypto.encryptBytes(device.public_key, Message.encode(message).finish());
+				// eslint-disable-next-line no-unused-vars
+				let res = await fetch("https://chrissytopher.com:40441/post-message/", {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
 					},
-					recipient: device.uuid,
-					data: encrypted_message,
-				})
-			});
-			console.log("successfully sent message to device", device);
-		} catch (e) {
-			console.log(e, "failed to send message to device", device);
-		}
+					body: JSON.stringify({
+						account: {
+							email: auth.email,
+							password: auth.password,
+						},
+						recipient: device.uuid,
+						data: encrypted_message,
+					})
+				});
+				console.log("successfully sent message to device", device);
+			} catch (e) {
+				console.log(e, "failed to send message to device", device);
+			}
+		});
 	});
-	if (recipient !== auth.email) {
+	if (!recipients.includes(auth.email)) {
 		let your_ids = await (await fetch("https://chrissytopher.com:40441/query-ids/" + auth.email)).json();
 		your_ids.ids.forEach(async device => {
 			try {
@@ -331,15 +352,23 @@ async function send_message(recipient, message_info) {
 
 function getUniqueChats(data, email)
 {
+	var justSenders = [];
 	var chats = [];
 	data.forEach((message) => {
 		if (message.recipients.length == 1) {
 			if (message.recipients[0] != email) {
-				if (!chats.includes(message.recipients[0])) {
-					chats.push(message.recipients[0]);
+				if (!justSenders.includes(message.recipients[0])) {
+					chats.push({recipients: message.recipients});
+					justSenders.push(message.recipients[0]);
 				}
-			} else if (!chats.includes(message.sender)) {
-				chats.push(message.sender);
+			} else if (!justSenders.includes(message.sender)) {
+				chats.push({recipients: [message.sender]});
+				justSenders.push(message.sender);
+			}
+		} else {
+			if (!justSenders.includes(message.chatid) && message.chatid) {
+				chats.push({recipients: message.recipients, chatid: message.chatid});
+				justSenders.push(message.chatid);
 			}
 		}
 	});
@@ -347,9 +376,9 @@ function getUniqueChats(data, email)
 }
 
 
-function add_chat_info(message, recipient) {
+function add_chat_info(message, recipients, chatid) {
 	let Message = protos.lookupType("Message");
-	return Message.create({...Message.toObject(message), recipients: [recipient]});
+	return Message.create({...Message.toObject(message), recipients: recipients, chatid: chatid});
 }
 
 function new_message(text, replyuuid) {
