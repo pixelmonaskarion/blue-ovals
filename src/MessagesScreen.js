@@ -130,6 +130,42 @@ function MessagesScreen() {
 		setChatId(window.crypto.randomUUID())
 	}
 
+	const CssTextField = styled(TextField, {
+		shouldForwardProp: (props) => props !== "focusColor" && props !== "unfocusedColor"
+	  })((p) => ({
+		// input label when focused
+		"& label.Mui-focused": {
+		  color: p.focusColor
+		},
+		// focused color for input with variant='standard'
+		"& .MuiInput-underline:after": {
+		  borderBottomColor: p.focusColor
+		},
+		// input label when focused
+		"& label": {
+			color: p.unfocusedColor
+		},
+		// focused color for input with variant='standard'
+		"& .MuiInput-underline:before": {
+			borderBottomColor: p.unfocusedColor
+		},
+		// focused color for input with variant='standard'
+		"&:hover:not($disabled):before": {
+			borderBottomColor: p.unfocusedColor,
+			backgroundColor: p.unfocusedColor
+		},
+		// focused color for input with variant='filled'
+		"& .MuiFilledInput-underline:after": {
+		  borderBottomColor: p.focusColor
+		},
+		// focused color for input with variant='outlined'
+		"& .MuiOutlinedInput-root": {
+		  "&.Mui-focused fieldset": {
+			borderColor: p.focusColor
+		  }
+		}
+	  }));
+
 
     useEffect(() => {
         if (messageList.length)
@@ -206,14 +242,14 @@ function MessagesScreen() {
 			<div className='drawer'>
 
 				<div style={{display: 'flex', flexDirection: 'row', padding: '5px'}}>
-					<TextField label='Search' variant='standard' onChange={handleSearchChange}/>
-					<IconButton onClick={() => setShowNewChat(!showNewChat)}>
+					<CssTextField unfocusedColor='white' focusColor='white' label='Search' variant='standard' onChange={handleSearchChange} sx={{ input: { color: 'white' } }}/>
+					<IconButton style={{color: 'white'}} onClick={() => setShowNewChat(!showNewChat)}>
 						<AddIcon/>
 					</IconButton>
 				</div>
 				
 				<div style={{padding: '10px', textAlign: 'center', display: (showNewChat ? 'block' : 'none')}}>
-					<TextField onChange={switchChatInputChange} label="Recipient" variant='standard' multiline/>
+					<CssTextField unfocusedColor='white' focusColor='white' onChange={switchChatInputChange} label="Recipient" variant='standard' multiline/>
 					<Button onClick={switchRecipient}>Chat</Button>
 				</div>
 				
@@ -229,7 +265,7 @@ function MessagesScreen() {
 							text = text.slice(0, -2);
 							return <ListItem>
 								<ListItemButton onClick={() => {setRecipients(chat.recipients); setChatId(chat.chatid)}}>
-									<ListItemText>
+									<ListItemText style={{color: 'white'}}>
 										{text}
 									</ListItemText>
 								</ListItemButton>
@@ -238,7 +274,7 @@ function MessagesScreen() {
 					</List>
 				</div>
 				<div ref={searchResultsRef} style={{display: 'none'}}>
-					<h3>Search Results</h3>
+					<h3 style={{color: 'white'}}>Search Results</h3>
 					<List>
 						{searchResults.map((result, i) => (
 							<ListItem>
@@ -247,7 +283,7 @@ function MessagesScreen() {
 									// setRecipient(result.sender == auth.email ? result.recipients[0] : result.sender);
 									// document.getElementById(result.uuid).scrollIntoView();
 								}}>
-									<ListItemText secondary={(result.sender == auth.email ? result.recipients[0] : result.sender)} primary={result.text}/>
+									<ListItemText style={{color: 'white'}} secondaryTypographyProps={{style: {color: 'white'}}} secondary={(result.sender == auth.email ? result.recipients[0] : result.sender)} primary={result.text}/>
 								</ListItemButton>
 							</ListItem>
 						))}
