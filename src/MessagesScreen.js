@@ -153,7 +153,8 @@ function MessagesScreen() {
 			</div>
 		);
 		messageList.forEach((message, id) => {
-			if (recipients.length == 1 && ((message.sender == auth.email && message.recipients[0] == recipients[0]) || (message.sender == recipients[0] && message.recipients[0] == auth.email)) || (chatid == message.chatid && chatid != undefined)) {
+			if ( (recipients.length == 1 && message.recipients.length == 1) && ((message.sender == auth.email && message.recipients[0] == recipients[0]) || (message.sender == recipients[0] && message.recipients[0] == auth.email)) || (chatid == message.chatid && chatid != undefined)) {
+				
 				const timestamp = new Date(new Number(message.sentTimestamp));
 
 				//difference in minutes between messages to show timestamp
@@ -287,7 +288,7 @@ async function load_protobufs() {
 
 async function send_message(recipients, chatid, message_info) {
 	let auth = await window.electronAPI.getAuth();
-	if (!recipients.includes(auth.email)) {
+	if (!recipients.includes(auth.email) && chatid != undefined) {
 		recipients.push(auth.email);
 	}
 	console.log(recipients, chatid, message_info)
