@@ -17,3 +17,15 @@ enum Status {
     Delivered = 0;
     Read = 1;
 }
+
+message ServerPost {
+    string email = 1;
+    string password = 2;
+    string recipient = 3;
+    bytes data = 4;
+}
+
+message ServerMessage {
+    string sender = 1;
+    bytes data = 2;
+}

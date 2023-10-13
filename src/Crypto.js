@@ -57,7 +57,7 @@ async function test() {
 	console.log(`Decrypted text: ${decryptedText}`);
 }
 
-let exported = { generateKeyPair, decrypt_message, encrypt_message, test, encrypt, decrypt, encryptBytes, decryptBytes };
+let exported = { generateKeyPair, decrypt_message, encrypt_message, test, encrypt, decrypt, encryptBytes, decryptBytes, encryptAsArray, decryptAsArray };
 export default exported;
 
 // Generate RSA key pair
@@ -235,9 +235,8 @@ const decryptDataWithRSAPrivateKey = async (encryptedDataString, privateKey) => 
 	return decryptedData;
 };
 
-const encryptDataWithRSAPublicKeyAsArray = async (data, publicKey) => {
+const encryptDataWithRSAPublicKeyAsArray = async (dataBytes, publicKey) => {
 	const blockSize = 190; // Maximum RSA block size is 190 bytes for OAEP padding
-	const dataBytes = new TextEncoder().encode(data);
 	const encryptedBlocks = [];
 	let offset = 0;
 	while (offset < dataBytes.length) {

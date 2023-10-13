@@ -334,21 +334,17 @@ async function send_message(recipients, chatid, message_info) {
 		ids.ids.forEach(async device => {
 			try {
 				let Message = protos.lookupType("Message");
-				let encrypted_message = await Crypto.encryptBytes(device.public_key, Message.encode(message).finish());
+				let ServerPost = protos.lookupType("ServerPost");
+				let encrypted_message = await Crypto.encryptAsArray(device.public_key, Message.encode(message).finish());
 				// eslint-disable-next-line no-unused-vars
 				let res = await fetch("https://chrissytopher.com:40441/post-message/", {
 					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json',
-					},
-					body: JSON.stringify({
-						account: {
-							email: auth.email,
-							password: auth.password,
-						},
+					body: ServerPost.encode(ServerPost.create({
+						email: auth.email,
+						password: auth.password,
 						recipient: device.uuid,
 						data: encrypted_message,
-					})
+					})).finish()
 				});
 				console.log("successfully sent message to device", device);
 			} catch (e) {
@@ -361,21 +357,17 @@ async function send_message(recipients, chatid, message_info) {
 		your_ids.ids.forEach(async device => {
 			try {
 				let Message = protos.lookupType("Message");
-				let encrypted_message = await Crypto.encryptBytes(device.public_key, Message.encode(message).finish());
+				let ServerPost = protos.lookupType("ServerPost");
+				let encrypted_message = await Crypto.encryptAsArray(device.public_key, Message.encode(message).finish());
 				// eslint-disable-next-line no-unused-vars
 				let res = await fetch("https://chrissytopher.com:40441/post-message/", {
 					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json',
-					},
-					body: JSON.stringify({
-						account: {
-							email: auth.email,
-							password: auth.password,
-						},
+					body: ServerPost.encode(ServerPost.create({
+						email: auth.email,
+						password: auth.password,
 						recipient: device.uuid,
 						data: encrypted_message,
-					})
+					})).finish()
 				});
 				console.log("successfully sent message to device", device);
 			} catch {

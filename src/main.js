@@ -207,14 +207,17 @@ Electron.ipcMain.handle('start-websocket', async (event) => {
 
 	ws.on('message', async function message(data) {
 		if (data == "😝") return;
-		let message_json = JSON.parse(data.toString());
+		let ServerMessage = protos.lookupType("ServerMessage");
 		let Message = protos.lookupType("Message");
-		let message = Message.decode(await Crypto.decryptAsArray(auth.private_key, message_json.data));
+		let server_message = ServerMessage.decode(data);
+		let decrypted_message = await Crypto.decryptAsArray(auth.private_key, server_message.data);
+		let message = Message.decode(decrypted_message);
+		console.log(message);
 		let showNotification = () => {
-			new Electron.Notification({title: "New Message", subtitle:"Blue Ovals", body: message_json.sender + ": " + message.text}).show();
+			new Electron.Notification({title: "New Message", subtitle:"Blue Ovals", body: server_message.sender + ": " + message.text}).show();
 		}
 		try {
-			mainWindow.webContents.send('websocket-message', save_message(message, message_json.sender));
+			mainWindow.webContents.send('websocket-message', save_message(message, server_message.sender));
 			if (!mainWindow.isVisible()) {
 				showNotification();
 			}
