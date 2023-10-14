@@ -14,4 +14,5 @@ contextBridge.exposeInMainWorld('electronAPI', {
   onWebsocketOpened: (callback) => ipcRenderer.on('websocket-open', (_event) => {
     callback();
   }),
+  pickFiles: (filters) => ipcRenderer.invoke('pick-files', filters),
 })

@@ -11,6 +11,7 @@ message Message {
     string reaction = 7; //reaction, can be whatever makes the most sense for the ui
     repeated string recipients = 8;
     string chatid = 9; //undefined if this is a dm
+    repeated Attachment attachments = 10;
 }
 
 enum Status {
@@ -28,4 +29,10 @@ message ServerPost {
 message ServerMessage {
     string sender = 1;
     bytes data = 2;
+}
+
+message Attachment {
+    string mime_type = 1;
+    string file_name = 2;
+    bytes data = 3;
 }

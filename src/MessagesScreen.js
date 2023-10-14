@@ -72,7 +72,6 @@ function MessagesScreen() {
 			setChats(getUniqueChats(data, email));
 			setMessageList(afterGetmessages(data));
 		});
-		
     }, []);
 
 
@@ -307,7 +306,8 @@ function MessagesScreen() {
 }
 
 async function handleSend(message, recipients, chatid) {
-	send_message(recipients, chatid, new_message(message));
+	let attachments = await window.electronAPI.pickFiles();
+	send_message(recipients, chatid, add_attachments(new_message(message), attachments));
 }
 
 
@@ -408,6 +408,15 @@ function getUniqueChats(data, email)
 function add_chat_info(message, recipients, chatid) {
 	let Message = protos.lookupType("Message");
 	return Message.create({...Message.toObject(message), recipients: recipients, chatid: chatid});
+}
+
+function add_attachments(message, attachments) {
+	let Message = protos.lookupType("Message");
+	let Attachment = protos.lookupType("Attachment");
+	let attachment_protos = attachments.map((attachment) => {
+		return Attachment.create(attachment);
+	});
+	return Message.create({...Message.toObject(message), attachments: attachment_protos});
 }
 
 function new_message(text, replyuuid) {

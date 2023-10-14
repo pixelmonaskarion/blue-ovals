@@ -49,6 +49,7 @@
     "aws-sdk": "^2.1467.0",
     "electron-squirrel-startup": "^1.0.0",
     "fs": "^0.0.1-security",
+    "mime-types": "^2.1.35",
     "mock-aws-s3": "^4.0.2",
     "nock": "^13.3.3",
     "path": "^0.12.7",

@@ -5,7 +5,8 @@ const Crypto = require("./NodeCrypto");
 const sqlite3 = require('sqlite3').verbose();
 var protobuf = require("protobufjs");
 const WebSocket = require("ws").WebSocket;
-const { existsSync, writeFileSync, readFileSync } = require("fs");
+const { existsSync, writeFileSync, readFileSync, mkdirSync } = require("fs");
+var mime = require('mime-types');
 import SharedClipboardColorPNG from "../assets/SharedClipboardColor.png";
 import SharedClipboardColorICO from "../assets/SharedClipboardColor.ico";
 import SharedClipboardColorIcon from "../assets/SharedClipboardIcon.png";
@@ -93,7 +94,7 @@ async function createWindow() {
 	protos = await load_protobufs();
 	messages_db = new sqlite3.Database(app.getPath("userData") + "/messages.db");
 	//unsure of what will happen if an older version has different/less fields, if this fails after changes delete the database file
-	messages_db.run("CREATE TABLE IF NOT EXISTS messages (uuid TEXT, text TEXT, sender TEXT, sentTimestamp BIGINT, reply BIT, aboutuuid TEXT, status TEXT, reaction TEXT, recipients TEXT, chatid TEXT)");
+	messages_db.run("CREATE TABLE IF NOT EXISTS messages (uuid TEXT, text TEXT, sender TEXT, sentTimestamp BIGINT, reply BIT, aboutuuid TEXT, status TEXT, reaction TEXT, recipients TEXT, chatid TEXT, attachments TEXT)");
 	
 	// and load the index.html of the app.
 	mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
@@ -150,16 +151,38 @@ function serialize_recipients(message) {
 	return recipients.slice(0, -1);
 }
 
-function deserialize_recipients(row) {
-	return {...row, recipients: row.recipients.split(";")};
+function serialize_attachments(message) {
+	let attachments = "";
+	message.attachments.forEach((attachment) => {
+		if (!existsSync(app.getPath("userData") + "/attachments")) {
+			mkdirSync(app.getPath("userData") + "/attachments");
+		}
+		writeFileSync(app.getPath("userData") + "/attachments/" + attachment.fileName, attachment.data);
+		attachments += attachment.fileName + ";";
+	});
+	return attachments.slice(0, -1);
+}
+
+function deserialize_row(row) {
+	return {...row, recipients: row.recipients.split(";"), attachments: row.attachments.split(";").map((fileName) => {
+		let mime_type = mime.lookup(fileName);
+		if (!mime_type) {
+			mime_type = "application/" + fileName.split(".").slice(-1)[0];
+		}
+		return {
+			fileName: fileName,
+			mimeType: mime_type,
+			data: readFileSync(app.getPath("userData") + "/attachments/" + fileName),
+		};
+	})};
 }
 
 function save_message(message, sender) {
 	console.log("saving message", message);
 	let message_object = protos.lookupType("Message").toObject(message);
-	let sql_command = `INSERT INTO messages VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+	let sql_command = `INSERT INTO messages VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 	const stmt = messages_db.prepare(sql_command);
-	stmt.run(message_object.uuid, message_object.text, sender, message_object.sentTimestamp, message_object.reply, message_object.aboutuuid, message_object.status, message_object.reaction, serialize_recipients(message_object), message_object.chatid);
+	stmt.run(message_object.uuid, message_object.text, sender, message_object.sentTimestamp, message_object.reply, message_object.aboutuuid, message_object.status, message_object.reaction, serialize_recipients(message_object), message_object.chatid, serialize_attachments(message_object));
 	//assuming new messages don't already have children
 	return {...message_object, sender: sender, children: []};
 }
@@ -172,6 +195,22 @@ Electron.ipcMain.handle('get-some-messages', async (event, sql) => {
 	return getSomeMessages(sql);
 });
 
+Electron.ipcMain.handle('pick-files', async (event, filters) => {
+	let files = Electron.dialog.showOpenDialogSync({ properties: ['openFile', 'multiSelections'], filters: filters });
+	if (files == undefined) {
+		return [];
+	}
+	return files.map((file_path) => {
+		let file_name = file_path.split("/").slice(-1)[0];
+		let mime_type = mime.lookup(file_path);
+		if (!mime_type) {
+			mime_type = "application/" + file_path.split(".").slice(-1)[0];
+		}
+		let data = readFileSync(file_path);
+		return {fileName: file_name, mimeType: mime_type, data: data};
+	});
+});
+
 async function getSomeMessages(sql) {
 	let promise = new Promise((resolve, reject) => {
 		let messages = [];
@@ -179,7 +218,7 @@ async function getSomeMessages(sql) {
 			if (err) {
 				reject(err);
 			}
-			let message = deserialize_recipients(row);
+			let message = deserialize_row(row);
 			//TODO: sql injection can happen here
 			message.children = getSomeMessages(`SELECT * FROM messages WHERE aboutuuid='${row.uuid}' AND reply=0`);
 			messages.push(message);
