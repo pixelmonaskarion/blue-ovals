@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useLongPress } from 'use-long-press';
 import { MessageReaction, Reactions } from './Reactions';
+import Attachment from './Attachment';
 
 function Message(props) {
 	const message = props.message;
@@ -65,7 +66,7 @@ function Message(props) {
 	let attachments = [];
 	if (message.attachments != undefined) {
 		attachments = message.attachments.map((attachment) => {
-			return <p>{attachment.fileName}</p>
+			return <Attachment attachment={attachment}/>
 		});
 	}
 

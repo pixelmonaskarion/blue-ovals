@@ -42,7 +42,7 @@ async function createWindow() {
 		callback({
 		  responseHeaders: {
 			...details.responseHeaders,
-			'Content-Security-Policy': [ "default-src 'self'; connect-src 'self' ws://localhost:3000 https://chrissytopher.com:40441; script-src 'self' 'unsafe-eval' http://localhost:3000; style-src 'self' 'unsafe-inline'; img-src 'self' https://raw.githubusercontent.com/" ]
+			'Content-Security-Policy': [ "default-src 'self'; connect-src 'self' ws://localhost:3000 https://chrissytopher.com:40441; script-src 'self' 'unsafe-eval' http://localhost:3000; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://raw.githubusercontent.com/" ]
 		  }
 		});
 	  });

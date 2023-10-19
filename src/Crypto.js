@@ -57,7 +57,7 @@ async function test() {
 	console.log(`Decrypted text: ${decryptedText}`);
 }
 
-let exported = { generateKeyPair, decrypt_message, encrypt_message, test, encrypt, decrypt, encryptBytes, decryptBytes, encryptAsArray, decryptAsArray };
+let exported = { generateKeyPair, decrypt_message, encrypt_message, test, encrypt, decrypt, encryptBytes, decryptBytes, encryptAsArray, decryptAsArray, arrayBufferToBase64 };
 export default exported;
 
 // Generate RSA key pair
