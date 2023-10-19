@@ -181,6 +181,7 @@ function MessagesScreen() {
 	let message_elements = [];
 	let [clickedMessages, setClickedMessages] = useState([]);
 	let [selectedMessage, setSelectedMessage] = useState(undefined);
+	let [attachmentFiles, setAttachmentFiles] = useState([]);
     if (auth !== undefined) {
 		message_elements.push(
 			<div style={{height: "7vh"}}>
@@ -299,15 +300,26 @@ function MessagesScreen() {
 					{message_elements}
 					<div ref={messagesEndRef}/>
         		</div>
-				<MessagesInput onInputChange={handleTextFieldChange} inputValue={fieldValue} onSendClicked={() => {handleSend(fieldValue, recipients, chatid); setFieldValue("");}}/>
+				<MessagesInput onFileUpload={async () => setAttachmentFiles(await addAttachment(attachmentFiles))} onInputChange={handleTextFieldChange} inputValue={fieldValue} onSendClicked={() => {handleSend(fieldValue, recipients, chatid, attachmentFiles); setFieldValue("");}}/>
 			</div>
 		</div>
 	);
 }
 
-async function handleSend(message, recipients, chatid) {
-	let attachments = await window.electronAPI.pickFiles();
+async function handleSend(message, recipients, chatid, attachment) {
+	//let attachments = await window.electronAPI.pickFiles();
+	let attachments = attachment;
 	send_message(recipients, chatid, add_attachments(new_message(message), attachments));
+}
+
+async function addAttachment(attachments)
+{
+	let files = await window.electronAPI.pickFiles();
+	files.forEach((attachment) => {
+		attachments.push(attachment);
+	});
+	console.log(attachments);
+	return attachments;
 }
 
 
@@ -413,9 +425,15 @@ function add_chat_info(message, recipients, chatid) {
 function add_attachments(message, attachments) {
 	let Message = protos.lookupType("Message");
 	let Attachment = protos.lookupType("Attachment");
-	let attachment_protos = attachments.map((attachment) => {
-		return Attachment.create(attachment);
-	});
+	let attachment_protos = null;
+	if (attachments != null)
+	{
+		console.log(attachments);
+		attachment_protos = attachments.map((attachment) => {
+			return Attachment.create(attachment);
+		});
+	} 
+	
 	return Message.create({...Message.toObject(message), attachments: attachment_protos});
 }
 
