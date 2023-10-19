@@ -300,7 +300,7 @@ function MessagesScreen() {
 					{message_elements}
 					<div ref={messagesEndRef}/>
         		</div>
-				<MessagesInput onFileUpload={async () => setAttachmentFiles(await addAttachment(attachmentFiles))} onInputChange={handleTextFieldChange} inputValue={fieldValue} onSendClicked={() => {handleSend(fieldValue, recipients, chatid, attachmentFiles); setFieldValue("");}}/>
+				<MessagesInput onFileUpload={async () => setAttachmentFiles(await addAttachment(attachmentFiles))} onInputChange={handleTextFieldChange} inputValue={fieldValue} onSendClicked={() => {handleSend(fieldValue, recipients, chatid, attachmentFiles); setFieldValue(""); setAttachmentFiles([]);}}/>
 			</div>
 		</div>
 	);

@@ -62,9 +62,18 @@ function Message(props) {
 		reactionElements.push(<MessageReaction color="#262628" user={reaction.sender} emoji={reaction.reaction}/>)
 	});
 
+	let attachments = [];
+	if (message.attachments != undefined) {
+		attachments = message.attachments.map((attachment) => {
+			return <p>{attachment.fileName}</p>
+		});
+	}
+
 	return (
 		<div {...longPressAction()} id={message.uuid} className={self ? 'selfMessageWrapper' : 'otherMessageWrapper'} onClick={() => {props.onClick();}} ref={messageRef}>
 			{reactionSelect}
+
+			{attachments}
 
 			<div className={self ? 'selfInnerMessage' : 'otherInnerMessage'} style={selected ? {background: "#7cacf8"} : {}}>
 				<p className='messageText'>{message.text}</p>
