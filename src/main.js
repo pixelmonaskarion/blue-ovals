@@ -153,6 +153,7 @@ function serialize_recipients(message) {
 
 function serialize_attachments(message) {
 	let attachments = "";
+	if (message.attachments == undefined) return attachments;
 	message.attachments.forEach((attachment) => {
 		if (!existsSync(app.getPath("userData") + "/attachments")) {
 			mkdirSync(app.getPath("userData") + "/attachments");
@@ -178,7 +179,7 @@ function deserialize_row(row) {
 }
 
 function save_message(message, sender) {
-	console.log("saving message", message);
+	console.log("saving message", message, sender);
 	let message_object = protos.lookupType("Message").toObject(message);
 	let sql_command = `INSERT INTO messages VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 	const stmt = messages_db.prepare(sql_command);
@@ -260,7 +261,8 @@ Electron.ipcMain.handle('start-websocket', async (event) => {
 			if (!mainWindow.isVisible()) {
 				showNotification();
 			}
-		} catch {
+		} catch (e) {
+			console.log(e);
 			showNotification();
 		}
 		
