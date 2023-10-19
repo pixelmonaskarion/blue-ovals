@@ -165,6 +165,9 @@ function serialize_attachments(message) {
 }
 
 function deserialize_row(row) {
+	if (row.attachments == "") {
+		return {...row, recipients: row.recipients.split(";"), attachments: []};
+	}
 	return {...row, recipients: row.recipients.split(";"), attachments: row.attachments.split(";").map((fileName) => {
 		let mime_type = mime.lookup(fileName);
 		if (!mime_type) {
